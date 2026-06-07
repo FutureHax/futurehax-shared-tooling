@@ -1,0 +1,118 @@
+version: "3"
+
+tasks:
+  # Husky Tasks
+  husky:init:
+    silent: true
+    desc: "Initialize Husky"
+    cmds:
+      - npx husky init
+
+  husky:commit-msg:
+    silent: true
+    cmds:
+      - ./.shared-tooling/husky/commit-msg.sh
+
+  husky:pre-commit:
+    silent: true
+    cmds:
+      - ./.shared-tooling/husky/pre-commit.sh
+
+  # Dependency Tasks
+  dependencies:install:
+    silent: true
+    desc: "Install Node.js dependencies"
+    cmds:
+      - |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+      - npm run prepare
+
+  # Lint and Test
+  lint:
+    desc: "Run ESLint"
+    cmds:
+      - npm run lint
+
+  lint:fix:
+    desc: "Run ESLint and fix issues"
+    cmds:
+      - npm run lint:fix
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - npm test
+
+  test:watch:
+    desc: "Run tests in watch mode"
+    cmds:
+      - npm run test:watch
+
+  test:coverage:
+    desc: "Run tests with coverage report"
+    cmds:
+      - npm run test:coverage
+
+  test:ci:
+    desc: "Run CI test suite"
+    cmds:
+      - npm run test:ci
+
+  # Release
+  release:
+    desc: "Create a new release using semantic-release"
+    env:
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+      GH_TOKEN: "{{.GITHUB_TOKEN}}"
+    cmds:
+      - |
+        if [ -z "$GITHUB_TOKEN" ]; then
+          echo "ERROR: GITHUB_TOKEN is required. Set it in your .env file"
+          exit 1
+        fi
+      - npx semantic-release
+
+  release:dry-run:
+    desc: "Preview what would be released"
+    env:
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+      GH_TOKEN: "{{.GITHUB_TOKEN}}"
+    cmds:
+      - |
+        if [ -z "$GITHUB_TOKEN" ]; then
+          echo "ERROR: GITHUB_TOKEN is required. Set it in your .env file"
+          exit 1
+        fi
+      - npx semantic-release --dry-run
+
+  release:manual:
+    desc: "Create a manual release (--no-ci)"
+    env:
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+      GH_TOKEN: "{{.GITHUB_TOKEN}}"
+    cmds:
+      - |
+        if [ -z "$GITHUB_TOKEN" ]; then
+          echo "ERROR: GITHUB_TOKEN is required. Set it in your .env file"
+          exit 1
+        fi
+      - npx semantic-release --no-ci
+
+  # Devcontainer
+  devcontainer:build:
+    silent: true
+    desc: "Build devcontainer from common + specific"
+    cmds:
+      - git submodule update --init --recursive
+      - node .devcontainer-common/build-devcontainer.js
+
+  devcontainer:update:
+    silent: true
+    desc: "Update devcontainer submodule to latest"
+    cmds:
+      - git submodule update --remote .devcontainer-common
+      - task: devcontainer:build

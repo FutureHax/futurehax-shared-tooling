@@ -1,0 +1,230 @@
+version: "3"
+
+tasks:
+  # Husky Tasks
+  husky:init:
+    silent: true
+    desc: "Initialize Husky"
+    cmds:
+      - npx husky init
+
+  husky:commit-msg:
+    silent: true
+    cmds:
+      - ./.shared-tooling/husky/commit-msg.sh
+
+  husky:pre-commit:
+    silent: true
+    cmds:
+      - ./.shared-tooling/husky/pre-commit.sh
+
+  # Dependency Tasks
+  dependencies:install:
+    silent: true
+    desc: "Install Node.js dependencies"
+    cmds:
+      - |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+      - npm run prepare
+
+  # Install to Foundry
+  install:foundry:
+    silent: true
+    desc: "Install production module into Foundry (TARGET=f14|f13|f12)"
+    cmds:
+      - bash ./.shared-tooling/release/install-prod.sh "${TARGET:-f14}"
+
+  install:foundry:dev:
+    silent: true
+    desc: "Install development module into Foundry (TARGET=f14|f13|f12)"
+    cmds:
+      - bash ./.shared-tooling/release/install-dev.sh "${TARGET:-f14}"
+
+  install:foundry:both:
+    silent: true
+    desc: "Install both production and development versions"
+    cmds:
+      - task: install:foundry
+      - task: install:foundry:dev
+
+  # Lint and Test
+  lint:
+    desc: "Run ESLint"
+    cmds:
+      - npm run lint
+
+  lint:fix:
+    desc: "Run ESLint and fix issues"
+    cmds:
+      - npm run lint:fix
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - npm test
+
+  test:watch:
+    desc: "Run tests in watch mode"
+    cmds:
+      - npm run test:watch
+
+  test:coverage:
+    desc: "Run tests with coverage report"
+    cmds:
+      - npm run test:coverage
+
+  test:ci:
+    desc: "Run CI test suite"
+    cmds:
+      - npm run test:ci
+
+  # Validation
+  validate:module:
+    desc: "Validate runtime JavaScript syntax"
+    cmds:
+      - node -c foundry_vtt/scripts/main.js
+      - echo "✓ scripts/main.js syntax valid"
+
+  validate:manifests:
+    desc: "Validate module manifests"
+    cmds:
+      - jq . foundry_vtt/module.json > /dev/null && echo "✓ module.json valid"
+      - |
+        if [ -f foundry_vtt/module-dev.json ]; then
+          jq . foundry_vtt/module-dev.json > /dev/null && echo "✓ module-dev.json valid"
+        fi
+
+  validate:all:
+    desc: "Run all validation checks"
+    cmds:
+      - task: validate:module
+      - task: validate:manifests
+
+  # Release
+  release:
+    desc: "Create a new release using semantic-release"
+    env:
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+      GH_TOKEN: "{{.GITHUB_TOKEN}}"
+    cmds:
+      - |
+        if [ -z "$GITHUB_TOKEN" ]; then
+          echo "ERROR: GITHUB_TOKEN is required. Set it in your .env file"
+          exit 1
+        fi
+      - npx semantic-release
+
+  release:dry-run:
+    desc: "Preview what would be released without creating a release"
+    env:
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+      GH_TOKEN: "{{.GITHUB_TOKEN}}"
+    cmds:
+      - |
+        if [ -z "$GITHUB_TOKEN" ]; then
+          echo "ERROR: GITHUB_TOKEN is required. Set it in your .env file"
+          exit 1
+        fi
+      - npx semantic-release --dry-run
+
+  release:manual:
+    desc: "Create a manual release (semantic-release with --no-ci)"
+    env:
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+      GH_TOKEN: "{{.GITHUB_TOKEN}}"
+      PACKAGE_RELEASE_TOKEN: "{{.PACKAGE_RELEASE_TOKEN}}"
+    cmds:
+      - |
+        if [ -z "$GITHUB_TOKEN" ]; then
+          echo "ERROR: GITHUB_TOKEN is required. Set it in your .env file"
+          exit 1
+        fi
+      - npx semantic-release --no-ci
+
+  release:build-module:
+    desc: "Build the module ZIP file"
+    cmds:
+      - node .shared-tooling/release/build-module.js
+
+  release:check-status:
+    desc: "Check current release status and version"
+    cmds:
+      - echo "Module version:" && jq -r .version foundry_vtt/module.json
+      - echo "Package version:" && jq -r .version package.json
+      - echo "Latest tag:" && git describe --tags --abbrev=0 2>/dev/null || echo "No tags"
+      - echo "Commits since tag:" && git log $(git describe --tags --abbrev=0 2>/dev/null)..HEAD --oneline 2>/dev/null | wc -l || echo "N/A"
+
+  # Dev build
+  dev:build:
+    desc: "Build development module ZIP"
+    cmds:
+      - |
+        TEMP_DIR=$(mktemp -d)
+        trap "rm -rf $TEMP_DIR" EXIT
+        cp -r foundry_vtt/* "$TEMP_DIR/"
+        if [ -f "$TEMP_DIR/module-dev.json" ]; then
+          cp "$TEMP_DIR/module-dev.json" "$TEMP_DIR/module.json"
+          rm -f "$TEMP_DIR/module-dev.json"
+        fi
+        MODULE_ID=$(jq -r '.id' "$TEMP_DIR/module.json")
+        cd "$TEMP_DIR" && zip -r "$OLDPWD/${MODULE_ID}.zip" .
+        echo "✓ Created ${MODULE_ID}.zip"
+
+  # Spec validation
+  spec:check:
+    desc: "Verify docs/SPEC.md exists and has canonical sections"
+    silent: true
+    cmds:
+      - |
+        if [ ! -f docs/SPEC.md ]; then
+          echo "ERROR: docs/SPEC.md is missing"
+          exit 1
+        fi
+        if [ ! -s docs/SPEC.md ]; then
+          echo "ERROR: docs/SPEC.md is empty"
+          exit 1
+        fi
+      - |
+        REQUIRED_SECTIONS=(
+          "## 1. Overview & user value"
+          "## 2. Core features"
+          "## 3. Data model"
+          "## 4. Settings & configuration"
+          "## 5. Hooks & API"
+          "## 6. UI & UX"
+          "## 7. Compatibility"
+          "## 8. Performance & limits"
+          "## 9. Future / out-of-scope"
+          "## 10. Change log"
+        )
+        MISSING=0
+        for section in "${REQUIRED_SECTIONS[@]}"; do
+          if ! grep -qF "$section" docs/SPEC.md; then
+            echo "MISSING: $section"
+            MISSING=$((MISSING + 1))
+          fi
+        done
+        if [ "$MISSING" -gt 0 ]; then
+          echo "ERROR: $MISSING required section(s) missing from docs/SPEC.md"
+          exit 1
+        fi
+        echo "✓ docs/SPEC.md has all 10 required sections"
+
+  # Devcontainer
+  devcontainer:build:
+    silent: true
+    desc: "Build devcontainer from common + specific"
+    cmds:
+      - git submodule update --init --recursive
+      - node .devcontainer-common/build-devcontainer.js
+
+  devcontainer:update:
+    silent: true
+    desc: "Update devcontainer submodule to latest"
+    cmds:
+      - git submodule update --remote .devcontainer-common
+      - task: devcontainer:build

@@ -1,0 +1,28 @@
+{
+  "name": "@futurehax/shared-tooling",
+  "version": "1.0.0",
+  "description": "Shared development tooling for FutureHax projects",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "peerDependencies": {
+    "@commitlint/cli": ">=20",
+    "@commitlint/config-conventional": ">=20",
+    "eslint": ">=10",
+    "globals": ">=17",
+    "husky": ">=9",
+    "lint-staged": ">=16",
+    "prettier": ">=3",
+    "semantic-release": ">=25"
+  },
+  "peerDependenciesMeta": {
+    "typescript-eslint": {
+      "optional": true
+    },
+    "lockfile-lint": {
+      "optional": true
+    }
+  }
+}
