@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Shared development tooling for FutureHax projects",
   "private": true,
-  "type": "module",
   "engines": {
     "node": ">=24"
   },
