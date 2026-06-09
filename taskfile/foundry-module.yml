@@ -155,6 +155,30 @@ tasks:
     cmds:
       - node .shared-tooling/release/inject-patrons.js
 
+  pack:check:
+    desc: "Verify compiled compendium packs are up to date with packs/_source (fails if _source changed without rebuilding)"
+    silent: true
+    cmds:
+      - |
+        if [ ! -d "foundry_vtt/packs/_source" ]; then
+          echo "No packs/_source directory — skipping pack freshness check."
+          exit 0
+        fi
+        BRANCH=$(git branch --show-current)
+        REMOTE_BRANCH="origin/$BRANCH"
+        if ! git rev-parse "$REMOTE_BRANCH" >/dev/null 2>&1; then
+          echo "No remote branch found — skipping pack freshness check."
+          exit 0
+        fi
+        CHANGED_SOURCE=$(git diff --name-only "$REMOTE_BRANCH"...HEAD 2>/dev/null | grep 'packs/_source' | wc -l | tr -d ' ')
+        CHANGED_PACKS=$(git diff --name-only "$REMOTE_BRANCH"...HEAD 2>/dev/null | grep 'foundry_vtt/packs/' | grep -v '_source' | wc -l | tr -d ' ')
+        if [ "$CHANGED_SOURCE" -gt 0 ] && [ "$CHANGED_PACKS" -eq 0 ]; then
+          echo "ERROR: packs/_source changed but compiled packs not rebuilt."
+          echo "Run: npm run pack"
+          exit 1
+        fi
+        echo "✓ Compendium packs are up to date."
+
   release:check-status:
     desc: "Check current release status and version"
     cmds:
