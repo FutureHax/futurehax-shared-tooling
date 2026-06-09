@@ -60,8 +60,14 @@ const PATRONS_END = "<!-- PATRONS_END -->";
 // ---------------------------------------------------------------------------
 
 async function fetchAllActivePatronNames() {
-  if (!PATREON_TOKEN) throw new Error("Missing PATREON_CREATOR_TOKEN env var");
-  if (!CAMPAIGN_ID) throw new Error("Missing PATREON_CAMPAIGN_ID env var");
+  if (!PATREON_TOKEN) {
+    console.log("PATREON_CREATOR_TOKEN not set — skipping patron injection.");
+    process.exit(0);
+  }
+  if (!CAMPAIGN_ID) {
+    console.log("PATREON_CAMPAIGN_ID not set — skipping patron injection.");
+    process.exit(0);
+  }
 
   const names = [];
   let cursor = null;
