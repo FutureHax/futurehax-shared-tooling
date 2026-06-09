@@ -150,6 +150,11 @@ tasks:
     cmds:
       - node .shared-tooling/release/build-module.js
 
+  inject:patrons:
+    desc: "Inject active Patreon patron list into credits journal pages (requires PATREON_CREATOR_TOKEN + PATREON_CAMPAIGN_ID)"
+    cmds:
+      - node .shared-tooling/release/inject-patrons.js
+
   release:check-status:
     desc: "Check current release status and version"
     cmds:

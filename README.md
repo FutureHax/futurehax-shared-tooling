@@ -26,7 +26,7 @@ Or use the automated migration script:
 | `lint-staged/` | lint-staged configs (full with gitleaks, minimal, Node base) |
 | `husky/` | Pre-commit and commit-msg hook scripts with CI skip |
 | `taskfile/` | Taskfile.yml includes for common tasks |
-| `release/` | Build scripts, Foundry semantic-release plugin, install scripts |
+| `release/` | Build scripts, Foundry semantic-release plugin, install scripts, Patreon patron injector |
 | `releaserc/` | semantic-release config factories |
 | `rules/` | Baseline Cursor rules per project type (e.g. `next-app/`) |
 | `skills/` | Baseline agent skills per project type (e.g. `next-app/`) |
@@ -148,6 +148,45 @@ tasks:
   "prettier": "./.shared-tooling/prettier/base.json"
 }
 ```
+
+## Patreon Patron Injection (Foundry modules)
+
+`release/inject-patrons.js` fetches the active patron list from the Patreon Creator API and injects a "Thank You, Patrons!" section into any compendium journal page that contains the FutureHax Patreon link.
+
+### Required env vars
+
+| Variable | Source | Description |
+|----------|--------|-------------|
+| `PATREON_CREATOR_TOKEN` | [patreon.com/portal](https://www.patreon.com/portal) → Clients & API Keys → Creator's Access Token | Long-lived token for your campaign |
+| `PATREON_CAMPAIGN_ID` | Same portal page, or from `futurehax-patreon/.env` | Numeric campaign ID (e.g. `16174438`) |
+
+These should be set in each module's `.env` (for local development) and as GitHub Actions secrets for CI.
+
+### How modules use it
+
+```json
+// package.json
+{
+  "scripts": {
+    "inject-patrons": "node .shared-tooling/release/inject-patrons.js",
+    "pack": "npm run inject-patrons && node tasks/pack-compendiums.js"
+  }
+}
+```
+
+Or via Taskfile:
+
+```bash
+task inject:patrons
+```
+
+### Injection marker
+
+The script looks for `<!-- PATRONS_START -->...<!-- PATRONS_END -->` in journal page HTML and replaces it on each run (idempotent). If no marker is found but the Patreon link paragraph is present, the marker is inserted automatically after the `</p>`. Use `module-doctor apply --yes` to add both the link and marker to a module that is missing them.
+
+### Zero active patrons safety
+
+If the API returns 0 active patrons (possible API hiccup), the script exits 0 with a warning and does **not** overwrite the existing list.
 
 ## Updating
 
