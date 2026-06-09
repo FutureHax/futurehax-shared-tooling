@@ -1,0 +1,46 @@
+---
+description: Baseline conventions for FutureHax Next.js web apps (Chakra UI + Prisma + Helm/Flux)
+alwaysApply: true
+---
+
+# FutureHax Next.js App Conventions
+
+This project is a FutureHax Next.js web app scaffolded from
+`nextjs-webapp-template`. Hold to the canonical stack and structure. Drift is
+audited by `futurehax-next-doctor`.
+
+## Stack (do not substitute)
+
+- **Framework**: Next.js (App Router) under `src/app/`. No `pages/` router.
+- **Language**: TypeScript, `strict` mode. Keep a `type-check` script (`tsc --noEmit`).
+- **UI**: Chakra UI v3 + Emotion (`@chakra-ui/react`, `@emotion/react`, `@emotion/styled`).
+  Do **not** introduce shadcn/ui or Tailwind. Theme lives in `src/theme.ts`;
+  the app is wrapped by `src/providers/ChakraProviders.tsx`.
+- **Data**: Prisma + PostgreSQL. Schema in `prisma/schema.prisma`; keep
+  `db:generate` / `db:migrate` / `db:seed` scripts.
+- **Validation**: `zod`.
+
+## Tooling
+
+- ESLint via the shared preset (`.shared-tooling/eslint/next-app.mjs`) extending
+  `next/core-web-vitals`, `next/typescript`, and `prettier`.
+- Prettier: `printWidth: 120`, `singleQuote: true`, `trailingComma: "es5"`.
+- Husky + commitlint (conventional commits) + lint-staged.
+- Tests with Vitest; keep `test` and `test:run` scripts.
+
+## Delivery
+
+- Dockerfile + `docker-bake.hcl`; `.dockerignore` excludes `node_modules`/`.env*`.
+- Helm chart under `chart/` (with `secret-provider` + `certificate` templates);
+  Flux GitOps manifests under `flux/`.
+- Release via `semantic-release` (+ `semantic-release-helm3`) on `main`.
+- CI runs lint, type-check, build, and release.
+
+## Security & infra
+
+- Commit `package-lock.json`. Never commit `.env*` or service-account keys;
+  keep `.env*` in `.gitignore` and document vars in `.env.example`.
+- Dependabot (`npm`) and a code-scanning workflow must be enabled.
+- Deploy/release workflows source non-secret CDN/GCP config from repository
+  variables (`vars.*`) and authenticate to GCP via `google-github-actions/auth`
+  with secrets. Define reviewers in `.github/CODEOWNERS`.
