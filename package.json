@@ -23,5 +23,12 @@
     "lockfile-lint": {
       "optional": true
     }
-  }
+  },
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": ">=9"
+  },
+  "prettier": "./prettier/base.json"
 }

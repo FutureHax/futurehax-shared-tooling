@@ -1,0 +1,12 @@
+version: "3"
+
+dotenv: [".env"]
+
+includes:
+  shared: ./taskfile/node-base.yml
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list
