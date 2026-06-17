@@ -1,5 +1,7 @@
 # futurehax-shared-tooling
 
+[![CI](https://github.com/FutureHax/futurehax-shared-tooling/actions/workflows/ci.yml/badge.svg)](https://github.com/FutureHax/futurehax-shared-tooling/actions/workflows/ci.yml) [![Release](https://github.com/FutureHax/futurehax-shared-tooling/actions/workflows/release.yml/badge.svg)](https://github.com/FutureHax/futurehax-shared-tooling/actions/workflows/release.yml) [![Latest Release](https://img.shields.io/github/v/release/FutureHax/futurehax-shared-tooling?sort=semver)](https://github.com/FutureHax/futurehax-shared-tooling/releases) ![License: All Rights Reserved](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)
+
 Shared development tooling for all FutureHax projects. Added as a git submodule at `.shared-tooling/` in each consuming project.
 
 ## Quick Start
@@ -18,19 +20,19 @@ Or use the automated migration script:
 
 ## What's Included
 
-| Directory | Purpose |
-|-----------|---------|
-| `eslint/` | ESLint flat configs (Foundry module, extended, Node base, TypeScript) |
-| `commitlint/` | Commitlint presets (Foundry module with `tweak` type, generic base) |
-| `prettier/` | Prettier config (`printWidth: 120`) |
-| `lint-staged/` | lint-staged configs (full with gitleaks, minimal, Node base) |
-| `husky/` | Pre-commit and commit-msg hook scripts with CI skip |
-| `taskfile/` | Taskfile.yml includes for common tasks |
-| `release/` | Build scripts, Foundry semantic-release plugin, install scripts, Patreon patron injector |
-| `releaserc/` | semantic-release config factories |
-| `rules/` | Baseline Cursor rules per project type (e.g. `next-app/`) |
-| `skills/` | Baseline agent skills per project type (e.g. `next-app/`) |
-| `scripts/` | Migration and setup utilities |
+| Directory      | Purpose                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| `eslint/`      | ESLint flat configs (Foundry module, extended, Node base, TypeScript)                    |
+| `commitlint/`  | Commitlint presets (Foundry module with `tweak` type, generic base)                      |
+| `prettier/`    | Prettier config (`printWidth: 120`)                                                      |
+| `lint-staged/` | lint-staged configs (full with gitleaks, minimal, Node base)                             |
+| `husky/`       | Pre-commit and commit-msg hook scripts with CI skip                                      |
+| `taskfile/`    | Taskfile.yml includes for common tasks                                                   |
+| `release/`     | Build scripts, Foundry semantic-release plugin, install scripts, Patreon patron injector |
+| `releaserc/`   | semantic-release config factories                                                        |
+| `rules/`       | Baseline Cursor rules per project type (e.g. `next-app/`)                                |
+| `skills/`      | Baseline agent skills per project type (e.g. `next-app/`)                                |
+| `scripts/`     | Migration and setup utilities                                                            |
 
 ## Project Types
 
@@ -155,10 +157,10 @@ tasks:
 
 ### Required env vars
 
-| Variable | Source | Description |
-|----------|--------|-------------|
-| `PATREON_CREATOR_TOKEN` | [patreon.com/portal](https://www.patreon.com/portal) → Clients & API Keys → Creator's Access Token | Long-lived token for your campaign |
-| `PATREON_CAMPAIGN_ID` | Same portal page, or from `futurehax-patreon/.env` | Numeric campaign ID (e.g. `16174438`) |
+| Variable                | Source                                                                                             | Description                           |
+| ----------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `PATREON_CREATOR_TOKEN` | [patreon.com/portal](https://www.patreon.com/portal) → Clients & API Keys → Creator's Access Token | Long-lived token for your campaign    |
+| `PATREON_CAMPAIGN_ID`   | Same portal page, or from `futurehax-patreon/.env`                                                 | Numeric campaign ID (e.g. `16174438`) |
 
 These should be set in each module's `.env` (for local development) and as GitHub Actions secrets for CI.
 
@@ -203,3 +205,9 @@ git commit -m "chore(deps): update shared-tooling"
 
 Changes to this repo automatically propagate when consumers run `git submodule update --remote`.
 Tag releases for stability if needed.
+
+## License
+
+Copyright (c) 2011-2026 FutureHax. All Rights Reserved.
+
+This is proprietary software. See [LICENSE](LICENSE) for full terms. No part of this project may be used, copied, modified, or distributed without the prior written permission of FutureHax.
