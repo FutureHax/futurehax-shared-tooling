@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Shared development tooling for FutureHax projects",
   "private": true,
+  "license": "UNLICENSED",
   "engines": {
     "node": ">=24"
   },
