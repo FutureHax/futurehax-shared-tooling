@@ -56,6 +56,7 @@ function createReleaseConfig(options = {}) {
           changelogFile: "CHANGELOG.md",
         },
       ],
+      ["./.shared-tooling/release/changelog-summary-plugin.cjs", {}],
       [
         "@semantic-release/npm",
         {
@@ -66,14 +67,8 @@ function createReleaseConfig(options = {}) {
       [
         "@semantic-release/git",
         {
-          assets: [
-            "package.json",
-            "package-lock.json",
-            "CHANGELOG.md",
-            ...extraAssets,
-          ],
-          message:
-            "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+          assets: ["package.json", "package-lock.json", "CHANGELOG.md", ...extraAssets],
+          message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
         },
       ],
     ],

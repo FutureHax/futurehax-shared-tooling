@@ -11,8 +11,7 @@ async function prepare(pluginConfig, context) {
   const { version } = nextRelease;
 
   const githubUrl = pluginConfig.githubUrl || "https://github.com";
-  const repositoryPath =
-    pluginConfig.repositoryPath || process.env.GITHUB_REPOSITORY;
+  const repositoryPath = pluginConfig.repositoryPath || process.env.GITHUB_REPOSITORY;
 
   const modulePath = path.join(process.cwd(), "foundry_vtt", "module.json");
   const moduleContent = await readFile(modulePath, "utf8");
@@ -27,10 +26,12 @@ async function prepare(pluginConfig, context) {
   if (gcsBucket && customDomain) {
     moduleJson.manifest = `https://${customDomain}/futurehax/${packageId}/latest/module.json`;
     moduleJson.download = `https://${customDomain}/futurehax/${packageId}/v${version}/module.zip`;
+    moduleJson.changelog = `https://${customDomain}/futurehax/${packageId}/CHANGELOG.md`;
     logger.log(`Using CDN URLs with domain: ${customDomain}`);
   } else if (gcsBucket) {
     moduleJson.manifest = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/module.json`;
     moduleJson.download = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/v${version}/module.zip`;
+    moduleJson.changelog = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/CHANGELOG.md`;
     logger.log(`Using direct GCS URLs with bucket: ${gcsBucket}`);
   } else {
     moduleJson.manifest = `${githubUrl}/${repositoryPath}/releases/latest/download/module.json`;
@@ -42,11 +43,11 @@ async function prepare(pluginConfig, context) {
   logger.log(`Updated module.json to version ${version}`);
   logger.log(`Set manifest URL: ${moduleJson.manifest}`);
   logger.log(`Set download URL: ${moduleJson.download}`);
+  if (moduleJson.changelog) {
+    logger.log(`Set changelog URL: ${moduleJson.changelog}`);
+  }
 
-  await writeFile(
-    path.join(process.cwd(), "module.json"),
-    JSON.stringify(moduleJson, null, 2) + "\n",
-  );
+  await writeFile(path.join(process.cwd(), "module.json"), JSON.stringify(moduleJson, null, 2) + "\n");
   logger.log(`Copied updated module.json to root for GitHub release upload`);
 
   await createModuleZip(version, logger);
@@ -58,18 +59,14 @@ async function createModuleZip(version, logger) {
   const moduleJson = JSON.parse(moduleContent);
 
   if (moduleJson.version !== version) {
-    logger.warn(
-      `Warning: module.json version (${moduleJson.version}) doesn't match expected version (${version})`,
-    );
+    logger.warn(`Warning: module.json version (${moduleJson.version}) doesn't match expected version (${version})`);
     moduleJson.version = version;
   }
 
   logger.log(`Creating module.zip with version ${version}`);
 
   return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(
-      path.join(process.cwd(), "module.zip"),
-    );
+    const output = fs.createWriteStream(path.join(process.cwd(), "module.zip"));
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => {
@@ -107,15 +104,12 @@ async function publish(pluginConfig, context) {
 
   const foundryToken = process.env.PACKAGE_RELEASE_TOKEN;
   if (!foundryToken) {
-    logger.log(
-      "PACKAGE_RELEASE_TOKEN not set, skipping Foundry VTT package update",
-    );
+    logger.log("PACKAGE_RELEASE_TOKEN not set, skipping Foundry VTT package update");
     return;
   }
 
   const githubUrl = pluginConfig.githubUrl || "https://github.com";
-  const repositoryPath =
-    pluginConfig.repositoryPath || process.env.GITHUB_REPOSITORY;
+  const repositoryPath = pluginConfig.repositoryPath || process.env.GITHUB_REPOSITORY;
   const modulePath = path.join(process.cwd(), "foundry_vtt", "module.json");
   const moduleContent = await readFile(modulePath, "utf8");
   const moduleJson = JSON.parse(moduleContent);
@@ -149,22 +143,17 @@ async function publish(pluginConfig, context) {
     },
   };
 
-  logger.log(
-    `Updating Foundry VTT package listing for ${packageId} v${version}...`,
-  );
+  logger.log(`Updating Foundry VTT package listing for ${packageId} v${version}...`);
 
   try {
-    const response = await fetch(
-      "https://api.foundryvtt.com/_api/packages/release_version/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: foundryToken,
-        },
-        body: JSON.stringify(releaseData),
+    const response = await fetch("https://api.foundryvtt.com/_api/packages/release_version/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: foundryToken,
       },
-    );
+      body: JSON.stringify(releaseData),
+    });
 
     let responseData;
     const responseText = await response.text();
@@ -177,9 +166,7 @@ async function publish(pluginConfig, context) {
 
     if (response.ok) {
       if (dryRun) {
-        logger.log(
-          `✓ Foundry API dry run successful: ${responseData.message || "Success"}`,
-        );
+        logger.log(`✓ Foundry API dry run successful: ${responseData.message || "Success"}`);
       } else {
         logger.log(`✓ Successfully updated Foundry VTT package listing!`);
         if (responseData.page) {
@@ -187,9 +174,7 @@ async function publish(pluginConfig, context) {
         }
       }
     } else {
-      logger.error(
-        `Failed to update Foundry VTT package listing: ${response.status} ${response.statusText}`,
-      );
+      logger.error(`Failed to update Foundry VTT package listing: ${response.status} ${response.statusText}`);
       if (typeof responseData === "object") {
         logger.error(`Response: ${JSON.stringify(responseData, null, 2)}`);
       } else {
@@ -217,47 +202,43 @@ async function publish(pluginConfig, context) {
         return;
       }
 
-      execSync(
-        `gsutil -q cp ${moduleZipPath} gs://${gcsBucket}/futurehax/${packageId}/v${version}/`,
-        { stdio: "inherit" },
-      );
-      execSync(
-        `gsutil -q cp ${moduleJsonPath} gs://${gcsBucket}/futurehax/${packageId}/v${version}/`,
-        { stdio: "inherit" },
-      );
+      execSync(`gsutil -q cp ${moduleZipPath} gs://${gcsBucket}/futurehax/${packageId}/v${version}/`, {
+        stdio: "inherit",
+      });
+      execSync(`gsutil -q cp ${moduleJsonPath} gs://${gcsBucket}/futurehax/${packageId}/v${version}/`, {
+        stdio: "inherit",
+      });
       execSync(
         `gsutil -m setmeta -h "Cache-Control:public, max-age=31536000, immutable" "gs://${gcsBucket}/futurehax/${packageId}/v${version}/**"`,
         { stdio: "inherit" },
       );
 
-      execSync(
-        `gsutil -q cp ${moduleZipPath} gs://${gcsBucket}/futurehax/${packageId}/latest/`,
-        { stdio: "inherit" },
-      );
-      execSync(
-        `gsutil -q cp ${moduleJsonPath} gs://${gcsBucket}/futurehax/${packageId}/latest/`,
-        { stdio: "inherit" },
-      );
+      execSync(`gsutil -q cp ${moduleZipPath} gs://${gcsBucket}/futurehax/${packageId}/latest/`, { stdio: "inherit" });
+      execSync(`gsutil -q cp ${moduleJsonPath} gs://${gcsBucket}/futurehax/${packageId}/latest/`, { stdio: "inherit" });
       execSync(
         `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${gcsBucket}/futurehax/${packageId}/latest/**"`,
         { stdio: "inherit" },
       );
 
+      const changelogPath = path.join(process.cwd(), "CHANGELOG.md");
+      if (fs.existsSync(changelogPath)) {
+        execSync(`gsutil -q cp ${changelogPath} gs://${gcsBucket}/futurehax/${packageId}/CHANGELOG.md`, {
+          stdio: "inherit",
+        });
+        execSync(
+          `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${gcsBucket}/futurehax/${packageId}/CHANGELOG.md"`,
+          { stdio: "inherit" },
+        );
+        logger.log(`✓ CHANGELOG.md uploaded to CDN`);
+      }
+
       logger.log(`✓ Artifacts uploaded to CDN`);
-      logger.log(
-        `  Versioned: https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/v${version}/`,
-      );
-      logger.log(
-        `  Latest: https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/`,
-      );
+      logger.log(`  Versioned: https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/v${version}/`);
+      logger.log(`  Latest: https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/`);
 
       if (customDomain) {
-        logger.log(
-          `  CDN Version: https://${customDomain}/futurehax/${packageId}/v${version}/`,
-        );
-        logger.log(
-          `  CDN Latest: https://${customDomain}/futurehax/${packageId}/latest/`,
-        );
+        logger.log(`  CDN Version: https://${customDomain}/futurehax/${packageId}/v${version}/`);
+        logger.log(`  CDN Latest: https://${customDomain}/futurehax/${packageId}/latest/`);
       }
     } catch (error) {
       logger.warn("Failed to upload to GCS:", error.message);
@@ -269,9 +250,7 @@ async function publish(pluginConfig, context) {
 
 async function success(pluginConfig, context) {
   const { logger } = context;
-  logger.log(
-    "Leaving module.zip and module.json in place for downstream steps.",
-  );
+  logger.log("Leaving module.zip and module.json in place for downstream steps.");
 }
 
 module.exports = { prepare, publish, success };
