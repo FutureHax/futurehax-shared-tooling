@@ -103,10 +103,6 @@ async function publish(pluginConfig, context) {
   const { version } = nextRelease;
 
   const foundryToken = process.env.PACKAGE_RELEASE_TOKEN;
-  if (!foundryToken) {
-    logger.log("PACKAGE_RELEASE_TOKEN not set, skipping Foundry VTT package update");
-    return;
-  }
 
   const githubUrl = pluginConfig.githubUrl || "https://github.com";
   const repositoryPath = pluginConfig.repositoryPath || process.env.GITHUB_REPOSITORY;
@@ -128,66 +124,70 @@ async function publish(pluginConfig, context) {
     manifestUrl = `${githubUrl}/${repositoryPath}/releases/latest/download/module.json`;
   }
 
-  const releaseData = {
-    id: packageId,
-    "dry-run": dryRun,
-    release: {
-      version: version,
-      manifest: manifestUrl,
-      notes: `${githubUrl}/${repositoryPath}/releases/tag/v${version}`,
-      compatibility: moduleJson.compatibility || {
-        minimum: "12",
-        verified: "12",
-        maximum: "",
+  if (foundryToken) {
+    const releaseData = {
+      id: packageId,
+      "dry-run": dryRun,
+      release: {
+        version: version,
+        manifest: manifestUrl,
+        notes: `${githubUrl}/${repositoryPath}/releases/tag/v${version}`,
+        compatibility: moduleJson.compatibility || {
+          minimum: "12",
+          verified: "12",
+          maximum: "",
+        },
       },
-    },
-  };
+    };
 
-  logger.log(`Updating Foundry VTT package listing for ${packageId} v${version}...`);
-
-  try {
-    const response = await fetch("https://api.foundryvtt.com/_api/packages/release_version/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: foundryToken,
-      },
-      body: JSON.stringify(releaseData),
-    });
-
-    let responseData;
-    const responseText = await response.text();
+    logger.log(`Updating Foundry VTT package listing for ${packageId} v${version}...`);
 
     try {
-      responseData = JSON.parse(responseText);
-    } catch (_e) {
-      responseData = { error: responseText };
-    }
+      const response = await fetch("https://api.foundryvtt.com/_api/packages/release_version/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: foundryToken,
+        },
+        body: JSON.stringify(releaseData),
+      });
 
-    if (response.ok) {
-      if (dryRun) {
-        logger.log(`✓ Foundry API dry run successful: ${responseData.message || "Success"}`);
+      let responseData;
+      const responseText = await response.text();
+
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (_e) {
+        responseData = { error: responseText };
+      }
+
+      if (response.ok) {
+        if (dryRun) {
+          logger.log(`✓ Foundry API dry run successful: ${responseData.message || "Success"}`);
+        } else {
+          logger.log(`✓ Successfully updated Foundry VTT package listing!`);
+          if (responseData.page) {
+            logger.log(`  Package page: ${responseData.page}`);
+          }
+        }
       } else {
-        logger.log(`✓ Successfully updated Foundry VTT package listing!`);
-        if (responseData.page) {
-          logger.log(`  Package page: ${responseData.page}`);
+        logger.error(`Failed to update Foundry VTT package listing: ${response.status} ${response.statusText}`);
+        if (typeof responseData === "object") {
+          logger.error(`Response: ${JSON.stringify(responseData, null, 2)}`);
+        } else {
+          logger.error(`Response: ${responseText}`);
+        }
+
+        if (response.status === 429) {
+          const retryAfter = response.headers.get("Retry-After");
+          logger.warn(`Rate limited. Retry after ${retryAfter} seconds`);
         }
       }
-    } else {
-      logger.error(`Failed to update Foundry VTT package listing: ${response.status} ${response.statusText}`);
-      if (typeof responseData === "object") {
-        logger.error(`Response: ${JSON.stringify(responseData, null, 2)}`);
-      } else {
-        logger.error(`Response: ${responseText}`);
-      }
-
-      if (response.status === 429) {
-        const retryAfter = response.headers.get("Retry-After");
-        logger.warn(`Rate limited. Retry after ${retryAfter} seconds`);
-      }
+    } catch (error) {
+      logger.error("Error calling Foundry VTT API:", error.message);
     }
-  } catch (error) {
-    logger.error("Error calling Foundry VTT API:", error.message);
+  } else {
+    logger.log("PACKAGE_RELEASE_TOKEN not set, skipping Foundry VTT package update");
   }
 
   if (gcsBucket) {
