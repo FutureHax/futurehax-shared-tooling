@@ -162,7 +162,7 @@ for project in "${PROJECTS[@]}"; do
     fi
 
     git add -A
-    git commit -m "$COMMIT_MSG"
+    HUSKY=0 git commit -m "$COMMIT_MSG"
     git push origin main
   )
   status=$?
