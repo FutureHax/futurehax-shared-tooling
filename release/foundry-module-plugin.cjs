@@ -3,6 +3,7 @@ const path = require("path");
 const archiver = require("archiver");
 const { execSync } = require("child_process");
 const { promisify } = require("util");
+const { compilePacksIfNeeded } = require("./compile-packs-if-needed.cjs");
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 
@@ -50,6 +51,12 @@ async function prepare(pluginConfig, context) {
   await writeFile(path.join(process.cwd(), "module.json"), JSON.stringify(moduleJson, null, 2) + "\n");
   logger.log(`Copied updated module.json to root for GitHub release upload`);
 
+  compilePacksIfNeeded({
+    projectRoot: process.cwd(),
+    log: (msg) => logger.log(msg),
+    error: (msg) => logger.error(msg),
+  });
+
   await createModuleZip(version, logger);
 }
 
@@ -86,7 +93,14 @@ async function createModuleZip(version, logger) {
         "module.json",
         "module-dev.json",
         "__tests__/**",
+        "**/__tests__/**",
+        "**/__mocks__/**",
         "*.test.js",
+        "**/*.test.js",
+        "**/*.test.mjs",
+        "**/*.test.ts",
+        "packs/_source/**",
+        "packs/_backup_*/**",
       ],
     });
 

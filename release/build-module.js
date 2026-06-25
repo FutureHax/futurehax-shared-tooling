@@ -2,6 +2,22 @@
 const fs = require("fs");
 const path = require("path");
 const archiver = require("archiver");
+const { compilePacksIfNeeded } = require("./compile-packs-if-needed.cjs");
+
+const ZIP_IGNORE = [
+  "node_modules/**",
+  ".git/**",
+  ".gitignore",
+  "module-dev.json",
+  "__tests__/**",
+  "**/__tests__/**",
+  "**/__mocks__/**",
+  "**/*.test.js",
+  "**/*.test.mjs",
+  "**/*.test.ts",
+  "packs/_source/**",
+  "packs/_backup_*/**",
+];
 
 async function buildModule() {
   const projectRoot = process.cwd();
@@ -11,6 +27,8 @@ async function buildModule() {
   const version = moduleJson.version;
 
   console.log(`Building module: ${moduleId} v${version}`);
+
+  compilePacksIfNeeded({ projectRoot });
 
   const distDir = path.join(projectRoot, "dist");
   if (!fs.existsSync(distDir)) {
@@ -32,20 +50,7 @@ async function buildModule() {
 
     archive.glob("**/*", {
       cwd: path.join(projectRoot, "foundry_vtt"),
-      ignore: [
-        "node_modules/**",
-        ".git/**",
-        ".gitignore",
-        "module-dev.json",
-        "__tests__/**",
-        "**/__tests__/**",
-        "**/__mocks__/**",
-        "**/*.test.js",
-        "**/*.test.mjs",
-        "**/*.test.ts",
-        "packs/_source/**",
-        "packs/_backup_*/**",
-      ],
+      ignore: ZIP_IGNORE,
     });
 
     archive.finalize();
