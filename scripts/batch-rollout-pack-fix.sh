@@ -113,6 +113,7 @@ for project in "${PROJECTS[@]}"; do
   fi
 
   echo "--- $project ---"
+  set +e
   (
     cd "$repo_path"
 
@@ -161,11 +162,18 @@ for project in "${PROJECTS[@]}"; do
       exit 3
     fi
 
-    git add -A
+    git add .shared-tooling package.json
+    git add -u tasks/release/ 2>/dev/null || true
+    if git diff --cached --quiet; then
+      echo "SKIP: $project (no staged changes)"
+      exit 3
+    fi
     HUSKY=0 git commit -m "$COMMIT_MSG"
+    git pull --rebase origin main
     git push origin main
-  )
+  ) || true
   status=$?
+  set -e
   case $status in
     0) PUSHED=$((PUSHED + 1)); echo "OK: $project" ;;
     3) SKIPPED=$((SKIPPED + 1)); echo "SKIP: $project (no changes)" ;;
