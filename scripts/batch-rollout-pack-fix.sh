@@ -55,8 +55,8 @@ resolve_build_script() {
 
   if echo "$pkg" | grep -q '"build".*vite build'; then
     echo "vite build && node .shared-tooling/release/build-module.js"
-  elif [ -f "$repo_path/Taskfile.yml" ]; then
-    echo "task release:build-module"
+  elif [ -f "$repo_path/Taskfile.yml" ] && grep -q 'release:build-module:' "$repo_path/.shared-tooling/taskfile/foundry-module.yml" 2>/dev/null; then
+    echo "node .shared-tooling/release/build-module.js"
   else
     echo "node .shared-tooling/release/build-module.js"
   fi
