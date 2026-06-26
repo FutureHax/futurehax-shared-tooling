@@ -23,8 +23,16 @@ async function prepare(pluginConfig, context) {
   const gcsBucket = process.env.GCS_BUCKET_NAME;
   const customDomain = process.env.CDN_DOMAIN || "downloads.r2plays.games";
   const packageId = pluginConfig.packageId || moduleJson.id;
+  const manifestBaseUrl = process.env.MANIFEST_BASE_URL;
 
-  if (gcsBucket && customDomain) {
+  if (manifestBaseUrl) {
+    moduleJson.manifest = `${manifestBaseUrl}/${packageId}`;
+    moduleJson.download = `${manifestBaseUrl.replace("/manifest", "/download")}/${packageId}/v${version}`;
+    if (gcsBucket && customDomain) {
+      moduleJson.changelog = `https://${customDomain}/futurehax/${packageId}/CHANGELOG.md`;
+    }
+    logger.log(`Using CMS proxy URLs (MANIFEST_BASE_URL): ${manifestBaseUrl}`);
+  } else if (gcsBucket && customDomain) {
     moduleJson.manifest = `https://${customDomain}/futurehax/${packageId}/latest/module.json`;
     moduleJson.download = `https://${customDomain}/futurehax/${packageId}/v${version}/module.zip`;
     moduleJson.changelog = `https://${customDomain}/futurehax/${packageId}/CHANGELOG.md`;
@@ -116,7 +124,12 @@ async function publish(pluginConfig, context) {
   const { nextRelease, logger } = context;
   const { version } = nextRelease;
 
+  const skipFoundryApi = process.env.SKIP_FOUNDRY_API === "true";
   const foundryToken = process.env.PACKAGE_RELEASE_TOKEN;
+
+  if (skipFoundryApi) {
+    logger.log("SKIP_FOUNDRY_API=true, skipping Foundry VTT package update");
+  }
 
   const githubUrl = pluginConfig.githubUrl || "https://github.com";
   const repositoryPath = pluginConfig.repositoryPath || process.env.GITHUB_REPOSITORY;
@@ -138,7 +151,7 @@ async function publish(pluginConfig, context) {
     manifestUrl = `${githubUrl}/${repositoryPath}/releases/latest/download/module.json`;
   }
 
-  if (foundryToken) {
+  if (!skipFoundryApi && foundryToken) {
     const releaseData = {
       id: packageId,
       "dry-run": dryRun,
