@@ -37,13 +37,12 @@ PROJECTS=(
   Death-Effect-Reminder
   Me-Beloved-SHIP
   Pirate-Borg-Crew-and-Ship-Manager
-  brightbeard-pirate-borg-adventure-module
+  brightbeard-adventure-module
   cabin-fever-classes-module
   saltwater-sacrament-module
   scattered-seafloor-module
   item-piles-pirateborg-module
   pirate-borg-loot-sheet-npc
-  pirate-borg-statblock-importer
   pirate-borg-content-importer-module
   chaos-survival-mode
   Foundry-Module-Template

@@ -30,7 +30,7 @@ PROJECTS=(
   Death-Effect-Reminder
   Me-Beloved-SHIP
   Pirate-Borg-Crew-and-Ship-Manager
-  brightbeard-pirate-borg-adventure-module
+  brightbeard-adventure-module
   cabin-fever-classes-module
   saltwater-sacrament-module
   scattered-seafloor-module
@@ -81,7 +81,7 @@ for project in "${PROJECTS[@]}"; do
 
   version="${latest_tag#v}"
   package_id=$(gh api "repos/$repo/contents/foundry_vtt/module.json" --jq '.content' 2>/dev/null | base64 -d 2>/dev/null | jq -r '.id' || echo "$project")
-  if [ -z "$package_id" ] || [ "$package_id" = "null" ]; then
+  if [ -z "$package_id" ] || [ "$package_id" = "null" ] || [[ "$package_id" == *"{{"* ]]; then
     package_id="$project"
   fi
 
