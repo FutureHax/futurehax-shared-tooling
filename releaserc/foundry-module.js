@@ -71,27 +71,16 @@ function createReleaseConfig(options = {}) {
         },
       ],
       [
-        "@semantic-release/github",
-        {
-          assets: [
-            {
-              path: "module.zip",
-              name: "module.zip",
-              label: "FoundryVTT Module (v${nextRelease.version})",
-            },
-            {
-              path: "module.json",
-              name: "module.json",
-              label: "Module Manifest (v${nextRelease.version})",
-            },
-          ],
-        },
-      ],
-      [
         "@semantic-release/git",
         {
           assets: ["package.json", "package-lock.json", "CHANGELOG.md", "foundry_vtt/module.json", ...extraAssets],
           message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+        },
+      ],
+      [
+        "@semantic-release/github",
+        {
+          assets: [],
         },
       ],
     ],
