@@ -37,10 +37,9 @@ jobs:
             Death-Effect-Reminder
             foundry-mob-actor
             pirate-borg-content-importer-module
-            pirate-borg-statblock-importer
             pirate-borg-loot-sheet-npc
             item-piles-pirateborg-module
-            brightbeard-pirate-borg-adventure-module
+            brightbeard-adventure-module
             Foundry-Module-Template
             foundry-adventure-module-template
             pb-pirate-forge

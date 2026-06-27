@@ -139,7 +139,10 @@ async function publish(pluginConfig, context) {
   const packageId = pluginConfig.packageId || moduleJson.id;
   const dryRun = pluginConfig.dryRun || false;
 
+  const manifestBaseUrl = process.env.MANIFEST_BASE_URL;
   const gcsBucket = process.env.GCS_BUCKET_NAME;
+  const gcsPrivateBucket = process.env.GCS_PRIVATE_BUCKET_NAME;
+  const uploadBucket = manifestBaseUrl && gcsPrivateBucket ? gcsPrivateBucket : gcsBucket;
   const customDomain = process.env.CDN_DOMAIN;
 
   let manifestUrl;
@@ -220,8 +223,9 @@ async function publish(pluginConfig, context) {
     logger.log("PACKAGE_RELEASE_TOKEN not set, skipping Foundry VTT package update");
   }
 
-  if (gcsBucket) {
-    logger.log(`Uploading artifacts to GCS CDN...`);
+  if (uploadBucket) {
+    const isPrivate = !!(manifestBaseUrl && gcsPrivateBucket);
+    logger.log(`Uploading artifacts to GCS ${isPrivate ? "private" : "CDN"} bucket (${uploadBucket})...`);
 
     try {
       const moduleZipPath = path.join(process.cwd(), "module.zip");
@@ -232,41 +236,45 @@ async function publish(pluginConfig, context) {
         return;
       }
 
-      execSync(`gsutil -q cp ${moduleZipPath} gs://${gcsBucket}/futurehax/${packageId}/v${version}/`, {
+      execSync(`gsutil -q cp ${moduleZipPath} gs://${uploadBucket}/futurehax/${packageId}/v${version}/`, {
         stdio: "inherit",
       });
-      execSync(`gsutil -q cp ${moduleJsonPath} gs://${gcsBucket}/futurehax/${packageId}/v${version}/`, {
+      execSync(`gsutil -q cp ${moduleJsonPath} gs://${uploadBucket}/futurehax/${packageId}/v${version}/`, {
         stdio: "inherit",
       });
       execSync(
-        `gsutil -m setmeta -h "Cache-Control:public, max-age=31536000, immutable" "gs://${gcsBucket}/futurehax/${packageId}/v${version}/**"`,
+        `gsutil -m setmeta -h "Cache-Control:public, max-age=31536000, immutable" "gs://${uploadBucket}/futurehax/${packageId}/v${version}/**"`,
         { stdio: "inherit" },
       );
 
-      execSync(`gsutil -q cp ${moduleZipPath} gs://${gcsBucket}/futurehax/${packageId}/latest/`, { stdio: "inherit" });
-      execSync(`gsutil -q cp ${moduleJsonPath} gs://${gcsBucket}/futurehax/${packageId}/latest/`, { stdio: "inherit" });
+      execSync(`gsutil -q cp ${moduleZipPath} gs://${uploadBucket}/futurehax/${packageId}/latest/`, {
+        stdio: "inherit",
+      });
+      execSync(`gsutil -q cp ${moduleJsonPath} gs://${uploadBucket}/futurehax/${packageId}/latest/`, {
+        stdio: "inherit",
+      });
       execSync(
-        `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${gcsBucket}/futurehax/${packageId}/latest/**"`,
+        `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${uploadBucket}/futurehax/${packageId}/latest/**"`,
         { stdio: "inherit" },
       );
 
       const changelogPath = path.join(process.cwd(), "CHANGELOG.md");
       if (fs.existsSync(changelogPath)) {
-        execSync(`gsutil -q cp ${changelogPath} gs://${gcsBucket}/futurehax/${packageId}/CHANGELOG.md`, {
+        execSync(`gsutil -q cp ${changelogPath} gs://${uploadBucket}/futurehax/${packageId}/CHANGELOG.md`, {
           stdio: "inherit",
         });
         execSync(
-          `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${gcsBucket}/futurehax/${packageId}/CHANGELOG.md"`,
+          `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${uploadBucket}/futurehax/${packageId}/CHANGELOG.md"`,
           { stdio: "inherit" },
         );
         logger.log(`✓ CHANGELOG.md uploaded to CDN`);
       }
 
-      logger.log(`✓ Artifacts uploaded to CDN`);
-      logger.log(`  Versioned: https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/v${version}/`);
-      logger.log(`  Latest: https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/`);
+      logger.log(`✓ Artifacts uploaded to ${isPrivate ? "private" : "CDN"} bucket`);
+      logger.log(`  Versioned: gs://${uploadBucket}/futurehax/${packageId}/v${version}/`);
+      logger.log(`  Latest: gs://${uploadBucket}/futurehax/${packageId}/latest/`);
 
-      if (customDomain) {
+      if (!isPrivate && customDomain) {
         logger.log(`  CDN Version: https://${customDomain}/futurehax/${packageId}/v${version}/`);
         logger.log(`  CDN Latest: https://${customDomain}/futurehax/${packageId}/latest/`);
       }
@@ -274,7 +282,7 @@ async function publish(pluginConfig, context) {
       logger.warn("Failed to upload to GCS:", error.message);
     }
   } else {
-    logger.log("GCS_BUCKET_NAME not set, skipping CDN upload");
+    logger.log("GCS_BUCKET_NAME not set, skipping GCS upload");
   }
 }
 
