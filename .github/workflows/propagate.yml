@@ -43,6 +43,22 @@ jobs:
             Foundry-Module-Template
             foundry-adventure-module-template
             pb-pirate-forge
+            cabin-fever-classes-module
+            character-vault-web
+            farsight-importer-ext
+            futurehax-cms
+            futurehax-module-doctor
+            futurehax-next-doctor
+            futurehax-website
+            itch-mcp
+            jolly-rogenerator
+            monster-card-generator
+            nextjs-webapp-template
+            obsidian-homebrewery-renderer
+            patreon-mcp
+            zordon
+            alpha-5-bot
+            digi-dm-screen
           )
 
           COMMIT_SHA="${{ github.sha }}"
