@@ -57,6 +57,9 @@ function createReleaseConfig(options = {}) {
       },
     ],
     ["@semantic-release/changelog", { changelogFile: "CHANGELOG.md" }],
+    // Bump package.json version (without publishing to npm) so the app's
+    // runtime version (read from package.json) matches the released tag.
+    ["@semantic-release/npm", { npmPublish: false }],
   ];
 
   if (chartPath) {
