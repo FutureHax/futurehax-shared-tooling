@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Bump .shared-tooling submodule across fleet modules.
+# Bump .shared-tooling submodule across every workspace repo that uses it.
 # Usage: ./scripts/batch-bump-shared-tooling.sh [workspace-dir] [--dry-run]
 
 WORKSPACE="/Users/marvin/Workspace"
@@ -14,44 +14,39 @@ for arg in "$@"; do
   esac
 done
 
-COMMIT_MSG="chore(tooling): fix GitHub release asset upload via gh CLI"
+COMMIT_MSG="chore(tooling): bump shared-tooling for GUI Git node PATH fix"
 
-PROJECTS=(
-  pb-combat-helper-overlay
-  pb-derelict-staging
-  pb-job-board
-  pb-naval-combat-overlay
-  pb-pirate-forge
-  pb-potion-bench
-  pb-sea-travel
-  pb-shanty-engine
-  pb-storm-generator
-  pb-suite-manager
-  pb-tavern-plus
-  pb-treasure-staging
-  pb-wind-manager
-  foundry-mob-actor
-  foundry-character-vault-module
-  Death-Effect-Reminder
-  Me-Beloved-SHIP
-  Pirate-Borg-Crew-and-Ship-Manager
-  brightbeard-pirate-borg-adventure-module
-  cabin-fever-classes-module
-  saltwater-sacrament-module
-  scattered-seafloor-module
-  item-piles-pirateborg-module
-  pirate-borg-loot-sheet-npc
-  pirate-borg-statblock-importer
-  pirate-borg-content-importer-module
-  chaos-survival-mode
-  Foundry-Module-Template
-  foundry-adventure-module-template
-  alpha-5-module
-)
+discover_projects() {
+  local repo_path name
+  for repo_path in "$WORKSPACE"/*; do
+    [ -d "$repo_path/.git" ] || continue
+    [ -f "$repo_path/.gitmodules" ] || continue
+    grep -q '\.shared-tooling' "$repo_path/.gitmodules" 2>/dev/null || continue
+    name=$(basename "$repo_path")
+    printf '%s\n' "$name"
+  done | sort -u
+}
+
+default_branch() {
+  local branch
+  branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+  if [ -n "$branch" ]; then
+    echo "$branch"
+    return
+  fi
+  branch=$(git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p')
+  echo "${branch:-main}"
+}
+
+PROJECTS=()
+while IFS= read -r project; do
+  [ -n "$project" ] && PROJECTS+=("$project")
+done < <(discover_projects)
 
 echo "=== Batch Shared-Tooling Submodule Bump ==="
 echo "Workspace: $WORKSPACE"
 echo "Dry run:   $DRY_RUN"
+echo "Repos:     ${#PROJECTS[@]}"
 echo ""
 
 PUSHED=0
@@ -61,21 +56,13 @@ FAILED_LIST=()
 
 for project in "${PROJECTS[@]}"; do
   repo_path="$WORKSPACE/$project"
-  if [ ! -d "$repo_path/.git" ]; then
-    echo "SKIP: $project (not a git repo)"
-    SKIPPED=$((SKIPPED + 1))
-    continue
-  fi
-  if [ ! -f "$repo_path/.gitmodules" ] || ! grep -q '.shared-tooling' "$repo_path/.gitmodules" 2>/dev/null; then
-    echo "SKIP: $project (no .shared-tooling submodule)"
-    SKIPPED=$((SKIPPED + 1))
-    continue
-  fi
 
   echo "--- $project ---"
   set +e
   (
     cd "$repo_path"
+    branch=$(default_branch)
+
     git submodule update --init --recursive .shared-tooling 2>/dev/null || true
     git submodule sync .shared-tooling 2>/dev/null || true
     git submodule update --remote .shared-tooling
@@ -86,14 +73,16 @@ for project in "${PROJECTS[@]}"; do
     fi
 
     if [ "$DRY_RUN" = true ]; then
-      echo "  [dry-run] would commit and push submodule bump"
+      old=$(git diff --submodule=log .shared-tooling | head -5)
+      echo "  [dry-run] would commit and push on branch $branch"
+      git diff --submodule=short .shared-tooling || true
       exit 0
     fi
 
     git add .shared-tooling
     HUSKY=0 git commit -m "$COMMIT_MSG"
-    git pull --rebase origin main
-    git push origin main
+    git pull --rebase origin "$branch"
+    git push origin "$branch"
   )
   status=$?
   set -e
