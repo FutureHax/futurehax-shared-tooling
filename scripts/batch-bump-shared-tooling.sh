@@ -36,6 +36,11 @@ discover_projects() {
 
 default_branch() {
   local branch
+  branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+  if [ -n "$branch" ]; then
+    echo "$branch"
+    return
+  fi
   branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
   if [ -n "$branch" ]; then
     echo "$branch"
