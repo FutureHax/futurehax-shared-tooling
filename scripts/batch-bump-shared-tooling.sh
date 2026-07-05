@@ -17,11 +17,18 @@ done
 COMMIT_MSG="chore(tooling): bump shared-tooling for GUI Git node PATH fix"
 
 discover_projects() {
-  local repo_path name
+  local repo_path name has_submodule
   for repo_path in "$WORKSPACE"/*; do
     [ -d "$repo_path/.git" ] || continue
-    [ -f "$repo_path/.gitmodules" ] || continue
-    grep -q '\.shared-tooling' "$repo_path/.gitmodules" 2>/dev/null || continue
+    has_submodule=false
+    if [ -f "$repo_path/.gitmodules" ] && grep -q '\.shared-tooling' "$repo_path/.gitmodules" 2>/dev/null; then
+      has_submodule=true
+    elif [ -d "$repo_path/.shared-tooling/.git" ]; then
+      has_submodule=true
+    elif git -C "$repo_path" config --get submodule..shared-tooling.path >/dev/null 2>&1; then
+      has_submodule=true
+    fi
+    [ "$has_submodule" = true ] || continue
     name=$(basename "$repo_path")
     printf '%s\n' "$name"
   done | sort -u
@@ -65,6 +72,7 @@ for project in "${PROJECTS[@]}"; do
 
     git submodule update --init --recursive .shared-tooling 2>/dev/null || true
     git submodule sync .shared-tooling 2>/dev/null || true
+    git config submodule..shared-tooling.url https://github.com/FutureHax/futurehax-shared-tooling.git 2>/dev/null || true
     git submodule update --remote .shared-tooling
 
     if git diff --quiet .shared-tooling && git diff --cached --quiet .shared-tooling; then
@@ -81,6 +89,10 @@ for project in "${PROJECTS[@]}"; do
 
     git add .shared-tooling
     HUSKY=0 git commit -m "$COMMIT_MSG"
+    if ! git remote get-url origin >/dev/null 2>&1; then
+      echo "SKIP push: $project (no origin remote; local commit only)"
+      exit 0
+    fi
     git pull --rebase origin "$branch"
     git push origin "$branch"
   )
