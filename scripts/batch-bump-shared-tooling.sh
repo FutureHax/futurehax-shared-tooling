@@ -23,7 +23,7 @@ discover_projects() {
     has_submodule=false
     if [ -f "$repo_path/.gitmodules" ] && grep -q '\.shared-tooling' "$repo_path/.gitmodules" 2>/dev/null; then
       has_submodule=true
-    elif [ -d "$repo_path/.shared-tooling/.git" ]; then
+    elif [ -e "$repo_path/.shared-tooling/.git" ]; then
       has_submodule=true
     elif git -C "$repo_path" config --get submodule..shared-tooling.path >/dev/null 2>&1; then
       has_submodule=true
