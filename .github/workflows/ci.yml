@@ -10,18 +10,18 @@ permissions:
   contents: read
 
 env:
-  HUSKY: '0'
+  HUSKY: "0"
 
 jobs:
   validate:
     name: Validate shared tooling configs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Validate YAML workflow syntax
         run: |
