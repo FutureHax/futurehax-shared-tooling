@@ -1,0 +1,4 @@
+FutureHax digital delivery placeholder.
+
+This file satisfies Lemon Squeezy's required product file upload for SaaS and subscription products.
+No customer-facing download is associated with these products.
