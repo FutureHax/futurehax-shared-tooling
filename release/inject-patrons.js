@@ -51,7 +51,8 @@ const PATREON_TOKEN = process.env.PATREON_CREATOR_TOKEN;
 const CAMPAIGN_ID = process.env.PATREON_CAMPAIGN_ID;
 const PATREON_BASE = "https://www.patreon.com/api/oauth2/v2";
 
-const PATREON_LINK = "patreon.com/r2plays";
+/** Accepts both /r2plays and the modern creator vanity /c/r2plays. */
+const PATREON_LINK_RE = /patreon\.com\/(?:c\/)?r2plays/;
 const PATRONS_START = "<!-- PATRONS_START -->";
 const PATRONS_END = "<!-- PATRONS_END -->";
 
@@ -111,11 +112,7 @@ async function fetchAllActivePatronNames() {
 // ---------------------------------------------------------------------------
 
 function escapeHtml(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function buildPatronBlock(names) {
@@ -133,16 +130,13 @@ function injectIntoContent(content, patronBlock) {
     const startIdx = content.indexOf(PATRONS_START);
     const endIdx = content.indexOf(PATRONS_END, startIdx);
     if (endIdx !== -1) {
-      return (
-        content.slice(0, startIdx) +
-        patronBlock +
-        content.slice(endIdx + PATRONS_END.length)
-      );
+      return content.slice(0, startIdx) + patronBlock + content.slice(endIdx + PATRONS_END.length);
     }
   }
 
   // Case 2: Patreon link present — insert after the </p> that closes it
-  const linkIdx = content.indexOf(PATREON_LINK);
+  const linkMatch = content.match(PATREON_LINK_RE);
+  const linkIdx = linkMatch?.index ?? -1;
   if (linkIdx === -1) return null; // not a credits page we can inject into
 
   const pCloseIdx = content.indexOf("</p>", linkIdx);
@@ -180,9 +174,7 @@ async function main() {
   const sourceDir = path.join(ROOT, "foundry_vtt", "packs", "_source");
 
   if (!fs.existsSync(sourceDir)) {
-    console.log(
-      "No foundry_vtt/packs/_source directory found — skipping patron injection."
-    );
+    console.log("No foundry_vtt/packs/_source directory found — skipping patron injection.");
     process.exit(0);
   }
 
@@ -191,9 +183,7 @@ async function main() {
   console.log(`  Found ${names.length} active patron(s).`);
 
   if (names.length === 0) {
-    console.warn(
-      "  WARNING: Patreon returned 0 active patrons. Skipping injection to avoid accidental wipe."
-    );
+    console.warn("  WARNING: Patreon returned 0 active patrons. Skipping injection to avoid accidental wipe.");
     process.exit(0);
   }
 
@@ -229,15 +219,11 @@ async function main() {
         page.text.content = updated;
         fileModified = true;
         injectedCount++;
-        console.log(
-          `  Injected into: ${path.relative(ROOT, filePath)} → page "${page.name}"`
-        );
+        console.log(`  Injected into: ${path.relative(ROOT, filePath)} → page "${page.name}"`);
       } else {
         // Content was already up to date (same patron list)
         injectedCount++;
-        console.log(
-          `  Up to date:    ${path.relative(ROOT, filePath)} → page "${page.name}"`
-        );
+        console.log(`  Up to date:    ${path.relative(ROOT, filePath)} → page "${page.name}"`);
       }
     }
 
@@ -247,12 +233,8 @@ async function main() {
   }
 
   if (injectedCount === 0) {
-    console.log(
-      "\n  No journal pages with a FutureHax Patreon link found — nothing to inject."
-    );
-    console.log(
-      "  Add the Patreon link to a credits page or run `module-doctor apply --patreon` to wire it up."
-    );
+    console.log("\n  No journal pages with a FutureHax Patreon link found — nothing to inject.");
+    console.log("  Add the Patreon link to a credits page or run `module-doctor apply --patreon` to wire it up.");
   } else {
     console.log(`\n✓ Patron list processed for ${injectedCount} page(s).`);
   }
