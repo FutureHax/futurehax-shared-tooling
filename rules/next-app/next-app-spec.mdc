@@ -16,6 +16,12 @@ audited by `futurehax-next-doctor`.
 - **UI**: Chakra UI v3 + Emotion (`@chakra-ui/react`, `@emotion/react`, `@emotion/styled`).
   Do **not** introduce shadcn/ui or Tailwind. Theme lives in `src/theme.ts`;
   the app is wrapped by `src/providers/ChakraProviders.tsx`.
+- **Landing**: Compose public home IA from `@futurehax/nextjs-common-ui/landing`
+  (Hero → Features → Demo → How it works → pricing → FAQ → Final CTA). Keep
+  product media and pricing wrappers app-owned.
+- **CSS**: Never add an unlayered global `padding: 0` reset that matches non-`<button>`
+  elements. It beats Chakra `@layer recipes` and strips `LinkButton` / `asChild`
+  link padding. Prefer no padding reset, or wrap it in `@layer reset { ... }`.
 - **Data**: Prisma + PostgreSQL. Schema in `prisma/schema.prisma`; keep
   `db:generate` / `db:migrate` / `db:seed` scripts.
 - **Validation**: `zod`.
