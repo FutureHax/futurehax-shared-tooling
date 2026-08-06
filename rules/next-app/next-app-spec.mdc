@@ -46,7 +46,7 @@ audited by `futurehax-next-doctor`.
 
 - Commit `package-lock.json`. Never commit `.env*` or service-account keys;
   keep `.env*` in `.gitignore` and document vars in `.env.example`.
-- Dependabot (`npm`) and a code-scanning workflow must be enabled.
+- Do not add Dependabot. A code-scanning workflow must be enabled.
 - Deploy/release workflows source non-secret CDN/GCP config from repository
   variables (`vars.*`) and authenticate to GCP via `google-github-actions/auth`
   with secrets. Define reviewers in `.github/CODEOWNERS`.
