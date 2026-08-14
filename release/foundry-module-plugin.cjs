@@ -4,8 +4,31 @@ const archiver = require("archiver");
 const { execSync } = require("child_process");
 const { promisify } = require("util");
 const { compilePacksIfNeeded } = require("./compile-packs-if-needed.cjs");
+const {
+  applyCatalogUrls,
+  buildProtectedManifest,
+  foundryReleaseManifestUrl,
+  isFoundryProtected,
+} = require("./foundry-protected.cjs");
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
+
+const ZIP_IGNORE = [
+  "node_modules/**",
+  ".git/**",
+  ".gitignore",
+  "module.json",
+  "module-dev.json",
+  "__tests__/**",
+  "**/__tests__/**",
+  "**/__mocks__/**",
+  "*.test.js",
+  "**/*.test.js",
+  "**/*.test.mjs",
+  "**/*.test.ts",
+  "packs/_source/**",
+  "packs/_backup_*/**",
+];
 
 async function prepare(pluginConfig, context) {
   const { nextRelease, logger } = context;
@@ -17,47 +40,30 @@ async function prepare(pluginConfig, context) {
   const modulePath = path.join(process.cwd(), "foundry_vtt", "module.json");
   const moduleContent = await readFile(modulePath, "utf8");
   const moduleJson = JSON.parse(moduleContent);
-
-  moduleJson.version = version;
-
-  const gcsBucket = process.env.GCS_BUCKET_NAME;
-  const customDomain = process.env.CDN_DOMAIN || "downloads.r2plays.games";
   const packageId = pluginConfig.packageId || moduleJson.id;
-  const manifestBaseUrl = process.env.MANIFEST_BASE_URL;
 
-  if (manifestBaseUrl) {
-    moduleJson.manifest = `${manifestBaseUrl}/${packageId}`;
-    moduleJson.download = `${manifestBaseUrl.replace("/manifest", "/download")}/${packageId}/v${version}`;
-    if (gcsBucket && customDomain) {
-      moduleJson.changelog = `https://${customDomain}/futurehax/${packageId}/CHANGELOG.md`;
-    }
-    logger.log(`Using CMS proxy URLs (MANIFEST_BASE_URL): ${manifestBaseUrl}`);
-  } else if (gcsBucket && customDomain) {
-    moduleJson.manifest = `https://${customDomain}/futurehax/${packageId}/latest/module.json`;
-    moduleJson.download = `https://${customDomain}/futurehax/${packageId}/v${version}/module.zip`;
-    moduleJson.changelog = `https://${customDomain}/futurehax/${packageId}/CHANGELOG.md`;
-    logger.log(`Using CDN URLs with domain: ${customDomain}`);
-  } else if (gcsBucket) {
-    moduleJson.manifest = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/module.json`;
-    moduleJson.download = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/v${version}/module.zip`;
-    moduleJson.changelog = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/CHANGELOG.md`;
-    logger.log(`Using direct GCS URLs with bucket: ${gcsBucket}`);
-  } else {
-    moduleJson.manifest = `${githubUrl}/${repositoryPath}/releases/latest/download/module.json`;
-    moduleJson.download = `${githubUrl}/${repositoryPath}/releases/download/v${version}/module.zip`;
-    logger.log(`Using GitHub release URLs (CDN not configured)`);
-  }
+  const { urls: catalogJson, mode } = applyCatalogUrls(moduleJson, {
+    packageId,
+    version,
+    githubUrl,
+    repositoryPath,
+    gcsBucket: process.env.GCS_BUCKET_NAME,
+    customDomain: process.env.CDN_DOMAIN || "downloads.r2plays.games",
+    manifestBaseUrl: process.env.MANIFEST_BASE_URL,
+  });
 
-  await writeFile(modulePath, JSON.stringify(moduleJson, null, 2) + "\n");
+  logger.log(`Using ${mode} URLs for catalog/CMS zip`);
+
+  await writeFile(modulePath, JSON.stringify(catalogJson, null, 2) + "\n");
   logger.log(`Updated module.json to version ${version}`);
-  logger.log(`Set manifest URL: ${moduleJson.manifest}`);
-  logger.log(`Set download URL: ${moduleJson.download}`);
-  if (moduleJson.changelog) {
-    logger.log(`Set changelog URL: ${moduleJson.changelog}`);
+  logger.log(`Set catalog manifest URL: ${catalogJson.manifest}`);
+  logger.log(`Set catalog download URL: ${catalogJson.download}`);
+  if (catalogJson.changelog) {
+    logger.log(`Set changelog URL: ${catalogJson.changelog}`);
   }
 
-  await writeFile(path.join(process.cwd(), "module.json"), JSON.stringify(moduleJson, null, 2) + "\n");
-  logger.log(`Copied updated module.json to root for GitHub release upload`);
+  await writeFile(path.join(process.cwd(), "module.json"), JSON.stringify(catalogJson, null, 2) + "\n");
+  logger.log(`Copied catalog module.json to root for GitHub release upload`);
 
   compilePacksIfNeeded({
     projectRoot: process.cwd(),
@@ -65,27 +71,26 @@ async function prepare(pluginConfig, context) {
     error: (msg) => logger.error(msg),
   });
 
-  await createModuleZip(version, logger);
+  await createModuleZip(version, logger, { destName: "module.zip", moduleJson: catalogJson });
+
+  if (isFoundryProtected()) {
+    const hubJson = buildProtectedManifest(catalogJson, packageId);
+    await writeFile(path.join(process.cwd(), "module-foundry.json"), JSON.stringify(hubJson, null, 2) + "\n");
+    await createModuleZip(version, logger, { destName: "module-foundry.zip", moduleJson: hubJson });
+    logger.log(`Built Foundry Hub zip with protected R2 manifest ${hubJson.manifest}`);
+  }
 }
 
-async function createModuleZip(version, logger) {
-  const modulePath = path.join(process.cwd(), "foundry_vtt", "module.json");
-  const moduleContent = await readFile(modulePath, "utf8");
-  const moduleJson = JSON.parse(moduleContent);
-
-  if (moduleJson.version !== version) {
-    logger.warn(`Warning: module.json version (${moduleJson.version}) doesn't match expected version (${version})`);
-    moduleJson.version = version;
-  }
-
-  logger.log(`Creating module.zip with version ${version}`);
+function createModuleZip(version, logger, { destName, moduleJson }) {
+  const payload = { ...moduleJson, version };
+  logger.log(`Creating ${destName} with version ${version}`);
 
   return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(path.join(process.cwd(), "module.zip"));
+    const output = fs.createWriteStream(path.join(process.cwd(), destName));
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => {
-      logger.log(`Created module.zip (${archive.pointer()} bytes)`);
+      logger.log(`Created ${destName} (${archive.pointer()} bytes)`);
       resolve();
     });
 
@@ -94,25 +99,10 @@ async function createModuleZip(version, logger) {
 
     archive.glob("**/*", {
       cwd: path.join(process.cwd(), "foundry_vtt"),
-      ignore: [
-        "node_modules/**",
-        ".git/**",
-        ".gitignore",
-        "module.json",
-        "module-dev.json",
-        "__tests__/**",
-        "**/__tests__/**",
-        "**/__mocks__/**",
-        "*.test.js",
-        "**/*.test.js",
-        "**/*.test.mjs",
-        "**/*.test.ts",
-        "packs/_source/**",
-        "packs/_backup_*/**",
-      ],
+      ignore: ZIP_IGNORE,
     });
 
-    archive.append(JSON.stringify(moduleJson, null, 2) + "\n", {
+    archive.append(JSON.stringify(payload, null, 2) + "\n", {
       name: "module.json",
     });
 
@@ -126,6 +116,7 @@ async function publish(pluginConfig, context) {
 
   const skipFoundryApi = process.env.SKIP_FOUNDRY_API === "true";
   const foundryToken = process.env.PACKAGE_RELEASE_TOKEN;
+  const protectedHub = isFoundryProtected();
 
   if (skipFoundryApi) {
     logger.log("SKIP_FOUNDRY_API=true, skipping Foundry VTT package update");
@@ -145,16 +136,22 @@ async function publish(pluginConfig, context) {
   const uploadBucket = manifestBaseUrl && gcsPrivateBucket ? gcsPrivateBucket : gcsBucket;
   const customDomain = process.env.CDN_DOMAIN;
 
-  let manifestUrl;
+  let catalogManifestUrl;
   if (gcsBucket && customDomain) {
-    manifestUrl = `https://${customDomain}/futurehax/${packageId}/latest/module.json`;
+    catalogManifestUrl = `https://${customDomain}/futurehax/${packageId}/latest/module.json`;
   } else if (gcsBucket) {
-    manifestUrl = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/module.json`;
+    catalogManifestUrl = `https://storage.googleapis.com/${gcsBucket}/futurehax/${packageId}/latest/module.json`;
   } else {
-    manifestUrl = `${githubUrl}/${repositoryPath}/releases/latest/download/module.json`;
+    catalogManifestUrl = `${githubUrl}/${repositoryPath}/releases/latest/download/module.json`;
   }
 
   if (!skipFoundryApi && foundryToken) {
+    const manifestUrl = foundryReleaseManifestUrl({
+      protectedHub,
+      packageId,
+      catalogManifestUrl,
+    });
+
     const releaseData = {
       id: packageId,
       "dry-run": dryRun,
@@ -174,6 +171,11 @@ async function publish(pluginConfig, context) {
     };
 
     logger.log(`Updating Foundry VTT package listing for ${packageId} v${version}...`);
+    if (protectedHub) {
+      logger.log(
+        "Protected Hub zip is module-foundry.zip. Foundry hosts premium packages via the Premium Content Uploader (https://foundryvtt.com/me/packages); the JSON release API only records the R2 manifest URL.",
+      );
+    }
 
     try {
       const response = await fetch("https://api.foundryvtt.com/_api/packages/release_version/", {
@@ -219,13 +221,13 @@ async function publish(pluginConfig, context) {
     } catch (error) {
       logger.error("Error calling Foundry VTT API:", error.message);
     }
-  } else {
+  } else if (!skipFoundryApi) {
     logger.log("PACKAGE_RELEASE_TOKEN not set, skipping Foundry VTT package update");
   }
 
   if (uploadBucket) {
     const isPrivate = !!(manifestBaseUrl && gcsPrivateBucket);
-    logger.log(`Uploading artifacts to GCS ${isPrivate ? "private" : "CDN"} bucket (${uploadBucket})...`);
+    logger.log(`Uploading catalog artifacts to GCS ${isPrivate ? "private" : "CDN"} bucket (${uploadBucket})...`);
 
     try {
       const moduleZipPath = path.join(process.cwd(), "module.zip");
@@ -270,7 +272,7 @@ async function publish(pluginConfig, context) {
         logger.log(`✓ CHANGELOG.md uploaded to CDN`);
       }
 
-      logger.log(`✓ Artifacts uploaded to ${isPrivate ? "private" : "CDN"} bucket`);
+      logger.log(`✓ Catalog artifacts uploaded to ${isPrivate ? "private" : "CDN"} bucket`);
       logger.log(`  Versioned: gs://${uploadBucket}/futurehax/${packageId}/v${version}/`);
       logger.log(`  Latest: gs://${uploadBucket}/futurehax/${packageId}/latest/`);
 
@@ -288,7 +290,7 @@ async function publish(pluginConfig, context) {
 
 async function success(pluginConfig, context) {
   const { logger } = context;
-  logger.log("Leaving module.zip and module.json in place for downstream steps.");
+  logger.log("Leaving module.zip, module.json, and any module-foundry.* artifacts in place for downstream steps.");
 }
 
 module.exports = { prepare, publish, success };
