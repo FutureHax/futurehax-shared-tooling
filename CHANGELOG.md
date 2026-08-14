@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.0.0...v1.1.0) (2026-08-14)
+
+
+### Features
+
+* **release:** emit Foundry-protected Hub zip alongside catalog zip ([a9276ea](https://github.com/FutureHax/futurehax-shared-tooling/commit/a9276ea97bf4d75ed289d211bf7b0cf11ac11a0b))
+
 # 1.0.0 (2026-08-06)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@futurehax/shared-tooling",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Shared development tooling for FutureHax projects",
   "private": true,
   "license": "UNLICENSED",
