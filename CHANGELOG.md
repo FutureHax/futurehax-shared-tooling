@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.1...v1.1.2) (2026-08-15)
+
+
+### Bug Fixes
+
+* **eslint:** match TypeScript files in createFoundryConfig ([520fbe6](https://github.com/FutureHax/futurehax-shared-tooling/commit/520fbe65b4d544c44b78bc696aac8baacdb36cd3))
+
 ## [1.1.1](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.0...v1.1.1) (2026-08-15)
 
 
