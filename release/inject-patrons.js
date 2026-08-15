@@ -88,7 +88,12 @@ async function fetchAllActivePatronNames() {
     });
 
     if (!res.ok) {
-      throw new Error(`Patreon API error ${res.status}: ${await res.text()}`);
+      const body = await res.text();
+      if (res.status === 401 || res.status === 403) {
+        console.warn(`Patreon API ${res.status}: creator token unauthorized. Skipping patron injection.`);
+        process.exit(0);
+      }
+      throw new Error(`Patreon API error ${res.status}: ${body}`);
     }
 
     const json = await res.json();
