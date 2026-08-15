@@ -16,10 +16,19 @@
     "husky": ">=9",
     "lint-staged": ">=16",
     "prettier": ">=3",
-    "semantic-release": ">=25"
+    "semantic-release": ">=25",
+    "typescript-eslint": ">=8",
+    "@typescript-eslint/parser": ">=8",
+    "@typescript-eslint/eslint-plugin": ">=8"
   },
   "peerDependenciesMeta": {
     "typescript-eslint": {
+      "optional": true
+    },
+    "@typescript-eslint/parser": {
+      "optional": true
+    },
+    "@typescript-eslint/eslint-plugin": {
       "optional": true
     },
     "lockfile-lint": {

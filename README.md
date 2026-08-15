@@ -104,6 +104,13 @@ export default createFoundryConfig({
 });
 ```
 
+ESLint 10 only lints `.js`/`.mjs`/`.cjs` unless `files` lists other extensions. `createFoundryConfig` always matches those JS globs. When `@typescript-eslint/parser` or the `typescript-eslint` package is installed in the consumer, it also matches `.ts`/`.mts`/`.cts`/`.tsx` and uses that parser. Pass `typescript: false` to skip the TypeScript block.
+
+```javascript
+// TypeScript modules (parser resolved from the app's node_modules)
+export default createFoundryConfig({ extraGlobals: { ActorSheet: "readonly" } });
+```
+
 ### commitlint.config.ts
 
 ```typescript
