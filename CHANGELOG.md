@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.0...v1.1.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **inject-patrons:** skip injection when Patreon token is unauthorized ([3908480](https://github.com/FutureHax/futurehax-shared-tooling/commit/3908480179d240c63652f8a5fe801de372a29bb9))
+
 # [1.1.0](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.0.0...v1.1.0) (2026-08-14)
 
 
