@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.2...v1.1.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* **release:** still emit Hub zip when skip-foundry-api is true ([12fc169](https://github.com/FutureHax/futurehax-shared-tooling/commit/12fc16913594f8e2a12d55c31493af12c75f8bea))
+
 ## [1.1.2](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.1...v1.1.2) (2026-08-15)
 
 
