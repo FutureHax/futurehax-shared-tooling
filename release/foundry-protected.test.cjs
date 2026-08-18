@@ -13,9 +13,9 @@ const {
 const base = { id: "death-ledger", title: "Death Ledger", version: "1.0.0" };
 
 describe("isFoundryProtected", () => {
-  it("is true only when FOUNDRY_PROTECTED=true and Foundry API is not skipped", () => {
+  it("is true when FOUNDRY_PROTECTED=true, including when the Foundry JSON API is skipped", () => {
     assert.equal(isFoundryProtected({ FOUNDRY_PROTECTED: "true" }), true);
-    assert.equal(isFoundryProtected({ FOUNDRY_PROTECTED: "true", SKIP_FOUNDRY_API: "true" }), false);
+    assert.equal(isFoundryProtected({ FOUNDRY_PROTECTED: "true", SKIP_FOUNDRY_API: "true" }), true);
     assert.equal(isFoundryProtected({}), false);
   });
 });

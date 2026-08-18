@@ -3,7 +3,7 @@
 const FOUNDRY_R2_HOST = "https://r2.foundryvtt.com/packages-public";
 
 function isFoundryProtected(env = process.env) {
-  return env.FOUNDRY_PROTECTED === "true" && env.SKIP_FOUNDRY_API !== "true";
+  return env.FOUNDRY_PROTECTED === "true";
 }
 
 function foundryHubManifestUrl(packageId) {
