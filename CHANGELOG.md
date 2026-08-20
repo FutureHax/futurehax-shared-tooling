@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.3...v1.2.0) (2026-08-20)
+
+
+### Features
+
+* upload Foundry Hub zip to GCS on release ([f6d1602](https://github.com/FutureHax/futurehax-shared-tooling/commit/f6d1602d51250591b92644856560861105fc0c96))
+
 ## [1.1.3](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.2...v1.1.3) (2026-08-18)
 
 
