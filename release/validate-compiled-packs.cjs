@@ -2,6 +2,29 @@ const fs = require("fs");
 const path = require("path");
 
 /**
+ * classic-level may keep small packs in the WAL only (CURRENT + MANIFEST, no SST .ldb yet).
+ * Foundry still loads those directories.
+ *
+ * @param {string} packDir
+ * @param {string[]} entries
+ * @returns {boolean}
+ */
+function isCompiledLevelDb(packDir, entries) {
+  const hasCurrent = entries.includes("CURRENT");
+  const hasManifest = entries.some((name) => name.startsWith("MANIFEST-"));
+  if (hasCurrent && hasManifest) return true;
+
+  return entries.some((name) => {
+    if (!name.endsWith(".ldb")) return false;
+    try {
+      return fs.statSync(path.join(packDir, name)).size > 0;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
  * @param {string} projectRoot
  * @param {object} moduleJson
  * @returns {{ ok: boolean; failures: string[] }}
@@ -23,17 +46,10 @@ function validateCompiledPacks(projectRoot, moduleJson) {
     }
 
     const entries = fs.readdirSync(packDir);
-    const ldbFiles = entries.filter((name) => name.endsWith(".ldb"));
-    const nonEmptyLdb = ldbFiles.filter((name) => {
-      try {
-        return fs.statSync(path.join(packDir, name)).size > 0;
-      } catch {
-        return false;
-      }
-    });
-
-    if (nonEmptyLdb.length === 0) {
-      failures.push(`${label}: no non-empty .ldb table files in ${pack.path} (found ${ldbFiles.length} .ldb file(s))`);
+    if (!isCompiledLevelDb(packDir, entries)) {
+      failures.push(
+        `${label}: not a compiled LevelDB pack in ${pack.path} (need CURRENT + MANIFEST-* or a non-empty .ldb)`,
+      );
     }
   }
 
