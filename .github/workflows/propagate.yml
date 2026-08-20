@@ -68,7 +68,6 @@ jobs:
             pb-wind-manager
             pirate-borg-content-importer-module
             pirate-borg-loot-sheet-npc
-            pirate-borg-statblock-importer
             player-perspective
             saltwater-sacrament-module
             scattered-seafloor-module
