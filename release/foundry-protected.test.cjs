@@ -7,6 +7,7 @@ const {
   buildProtectedManifest,
   foundryHubManifestUrl,
   foundryReleaseManifestUrl,
+  gcsFoundryZipObject,
   isFoundryProtected,
 } = require("./foundry-protected.cjs");
 
@@ -31,6 +32,19 @@ describe("buildProtectedManifest", () => {
     assert.equal(hub.protected, true);
     assert.equal(hub.manifest, foundryHubManifestUrl("boss-effect-reminder"));
     assert.equal(Object.hasOwn(hub, "download"), false);
+  });
+});
+
+describe("gcsFoundryZipObject", () => {
+  it("places module-foundry.zip next to catalog artifacts, not as module.zip", () => {
+    assert.equal(
+      gcsFoundryZipObject("pb-wind-manager", "1.2.0"),
+      "futurehax/pb-wind-manager/v1.2.0/module-foundry.zip",
+    );
+    assert.equal(
+      gcsFoundryZipObject("pb-wind-manager", "1.2.0", "latest"),
+      "futurehax/pb-wind-manager/latest/module-foundry.zip",
+    );
   });
 });
 

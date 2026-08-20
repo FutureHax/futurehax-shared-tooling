@@ -8,6 +8,7 @@ const {
   applyCatalogUrls,
   buildProtectedManifest,
   foundryReleaseManifestUrl,
+  gcsFoundryZipObject,
   isFoundryProtected,
 } = require("./foundry-protected.cjs");
 const writeFile = promisify(fs.writeFile);
@@ -244,6 +245,15 @@ async function publish(pluginConfig, context) {
       execSync(`gsutil -q cp ${moduleJsonPath} gs://${uploadBucket}/futurehax/${packageId}/v${version}/`, {
         stdio: "inherit",
       });
+
+      const hubZipPath = path.join(process.cwd(), "module-foundry.zip");
+      const hasHubZip = fs.existsSync(hubZipPath);
+      if (hasHubZip) {
+        execSync(`gsutil -q cp ${hubZipPath} gs://${uploadBucket}/${gcsFoundryZipObject(packageId, version)}`, {
+          stdio: "inherit",
+        });
+      }
+
       execSync(
         `gsutil -m setmeta -h "Cache-Control:public, max-age=31536000, immutable" "gs://${uploadBucket}/futurehax/${packageId}/v${version}/**"`,
         { stdio: "inherit" },
@@ -255,6 +265,14 @@ async function publish(pluginConfig, context) {
       execSync(`gsutil -q cp ${moduleJsonPath} gs://${uploadBucket}/futurehax/${packageId}/latest/`, {
         stdio: "inherit",
       });
+      if (hasHubZip) {
+        execSync(
+          `gsutil -q cp ${hubZipPath} gs://${uploadBucket}/${gcsFoundryZipObject(packageId, version, "latest")}`,
+          {
+            stdio: "inherit",
+          },
+        );
+      }
       execSync(
         `gsutil -m setmeta -h "Cache-Control:no-cache, no-store, must-revalidate" "gs://${uploadBucket}/futurehax/${packageId}/latest/**"`,
         { stdio: "inherit" },
@@ -273,6 +291,9 @@ async function publish(pluginConfig, context) {
       }
 
       logger.log(`✓ Catalog artifacts uploaded to ${isPrivate ? "private" : "CDN"} bucket`);
+      if (hasHubZip) {
+        logger.log(`✓ Hub zip uploaded as ${gcsFoundryZipObject(packageId, version)}`);
+      }
       logger.log(`  Versioned: gs://${uploadBucket}/futurehax/${packageId}/v${version}/`);
       logger.log(`  Latest: gs://${uploadBucket}/futurehax/${packageId}/latest/`);
 

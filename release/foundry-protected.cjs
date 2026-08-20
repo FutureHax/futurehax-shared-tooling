@@ -60,6 +60,11 @@ function buildProtectedManifest(moduleJson, packageId) {
   return hub;
 }
 
+function gcsFoundryZipObject(packageId, version, folder) {
+  const dest = folder === "latest" ? "latest" : `v${version}`;
+  return `futurehax/${packageId}/${dest}/module-foundry.zip`;
+}
+
 function foundryReleaseManifestUrl({ protectedHub, packageId, catalogManifestUrl }) {
   if (protectedHub) return foundryHubManifestUrl(packageId);
   return catalogManifestUrl;
@@ -71,5 +76,6 @@ module.exports = {
   buildProtectedManifest,
   foundryHubManifestUrl,
   foundryReleaseManifestUrl,
+  gcsFoundryZipObject,
   isFoundryProtected,
 };
