@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.2.0...v1.2.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **release:** accept small LevelDB packs without SST .ldb files ([51df2b4](https://github.com/FutureHax/futurehax-shared-tooling/commit/51df2b4099c1ac9a1a7ffcc2dcbffe2cb3924ce7))
+
 # [1.2.0](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.1.3...v1.2.0) (2026-08-20)
 
 
