@@ -1,3 +1,16 @@
+## What's New in v1.2.2
+
+- Fixed an issue where the optional OpenAI secret was not being passed into the semantic-release process.
+
+---
+
+## [1.2.2](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.2.1...v1.2.2) (2026-09-25)
+
+
+### Bug Fixes
+
+* **release:** pass optional OpenAI secret into semantic-release ([57c46b2](https://github.com/FutureHax/futurehax-shared-tooling/commit/57c46b26008cf669324b65a68f26d9c9e3b4a18d))
+
 ## [1.2.1](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.2.0...v1.2.1) (2026-08-20)
 
 
