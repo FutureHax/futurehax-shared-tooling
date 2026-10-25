@@ -1,3 +1,16 @@
+## What's New in v1.3.0
+
+Internal improvements and stability fixes.
+
+---
+
+# [1.3.0](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.2.3...v1.3.0) (2026-10-25)
+
+
+### Features
+
+* **rules:** add Firebase App Hosting variant of next-app-spec rule ([#7](https://github.com/FutureHax/futurehax-shared-tooling/issues/7)) ([c64ee7b](https://github.com/FutureHax/futurehax-shared-tooling/commit/c64ee7b224c02534d88a4a46b46883a882e04bbb))
+
 ## What's New in v1.2.3
 
 Internal improvements and stability fixes.
