@@ -54,19 +54,23 @@ Generic Node.js project without Foundry globals.
 
 ### `next-app`
 
-FutureHax Next.js web app (Chakra UI + Prisma + Helm/Flux), scaffolded from
-[`nextjs-webapp-template`](https://github.com/FutureHax/nextjs-webapp-template)
-and audited by [`futurehax-next-doctor`](https://github.com/FutureHax/futurehax-next-doctor).
+FutureHax Next.js web app (Chakra UI), audited by
+[`futurehax-next-doctor`](https://github.com/FutureHax/futurehax-next-doctor).
 Provides:
 
 - `eslint/next-app.mjs` — `createNextConfig()` (wraps `eslint-config-next` + Prettier)
 - `releaserc/next-app.js` — `createReleaseConfig({ chartPath })` (optional Helm versioning)
 - `taskfile/next-app.yml` — dev/build/lint/type-check/test/db/release tasks
-- `rules/next-app/next-app-spec.mdc` — baseline Cursor rule (GKE apps)
 - `rules/next-app-firebase/next-app-spec.mdc` — baseline Cursor rule for
   Firebase App Hosting apps scaffolded from
   [`nextjs-firebase-webapp-template`](https://github.com/FutureHax/nextjs-firebase-webapp-template)
-  (Chakra UI + Firestore + App Hosting)
+  (Chakra UI + Firestore + App Hosting). Most product apps use this one.
+- `rules/next-app-base/next-app-spec.mdc` — baseline Cursor rule for apps with
+  no data layer or deploy path, such as
+  [`nextjs-webapp-template`](https://github.com/FutureHax/nextjs-webapp-template)
+- `rules/next-app/next-app-spec.mdc` — the alpha-5 / Prisma + Helm profile
+  (Prisma + PostgreSQL on Helm/Flux, GKE). Only for apps that actually run
+  Prisma and Helm/Flux; not the default.
 - `skills/next-app/writing-nextjs-app-spec/` — baseline agent skill
 
 Consumer examples:
@@ -94,11 +98,15 @@ the profile and `next-doctor apply` creates it. Run from the repo root:
 
 ```bash
 mkdir -p .cursor/rules .cursor/skills
-# GKE apps
-ln -s ../../.shared-tooling/rules/next-app/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
-# Firebase App Hosting apps
+# Run exactly ONE of the three rule links below.
+# Firebase App Hosting apps:
 ln -s ../../.shared-tooling/rules/next-app-firebase/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
-# Both
+# Apps with no data layer or deploy path:
+# ln -s ../../.shared-tooling/rules/next-app-base/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
+# Prisma + Helm/Flux apps only (alpha-5 profile):
+# ln -s ../../.shared-tooling/rules/next-app/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
+
+# Every app:
 ln -s ../../.shared-tooling/skills/next-app/writing-nextjs-app-spec .cursor/skills/writing-nextjs-app-spec
 ```
 
