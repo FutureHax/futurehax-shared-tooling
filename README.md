@@ -98,13 +98,15 @@ the profile and `next-doctor apply` creates it. Run from the repo root:
 
 ```bash
 mkdir -p .cursor/rules .cursor/skills
-# Firebase App Hosting apps
+# Run exactly ONE of the three rule links below.
+# Firebase App Hosting apps:
 ln -s ../../.shared-tooling/rules/next-app-firebase/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
-# Apps with no data layer or deploy path
-ln -s ../../.shared-tooling/rules/next-app-base/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
-# Prisma + Helm/Flux apps only (alpha-5 profile)
-ln -s ../../.shared-tooling/rules/next-app/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
-# All
+# Apps with no data layer or deploy path:
+# ln -s ../../.shared-tooling/rules/next-app-base/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
+# Prisma + Helm/Flux apps only (alpha-5 profile):
+# ln -s ../../.shared-tooling/rules/next-app/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
+
+# Every app:
 ln -s ../../.shared-tooling/skills/next-app/writing-nextjs-app-spec .cursor/skills/writing-nextjs-app-spec
 ```
 

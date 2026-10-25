@@ -21,8 +21,8 @@ the spec.
 | `next-app-base/`     | Apps with no data layer or deploy path yet          | Omit, or "none yet"         | Omit, or "none yet"                                 |
 | `next-app/`          | alpha-5 only: Prisma + PostgreSQL on Helm/Flux, GKE | Prisma models, migrations   | Helm values, Flux wiring, GCP/CDN `vars.*`          |
 
-Only use the Prisma + Helm sections when the repo actually has
-`prisma/schema.prisma` and a `chart/` or `flux/` deploy path. A Firebase app
+Only use the Prisma + Helm sections on the alpha-5 profile: a non-Firebase
+repo that actually carries `prisma/schema.prisma`, `chart/`, or `flux/`. A Firebase app
 must not gain Prisma, PostgreSQL, Helm, or Flux through its spec.
 
 ## When to use
