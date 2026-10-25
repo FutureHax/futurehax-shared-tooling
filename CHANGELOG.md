@@ -1,3 +1,16 @@
+## What's New in v1.2.3
+
+Internal improvements and stability fixes.
+
+---
+
+## [1.2.3](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.2.2...v1.2.3) (2026-10-25)
+
+
+### Bug Fixes
+
+* **deps:** override handlebars to 4.7.10 for RCE advisories ([#6](https://github.com/FutureHax/futurehax-shared-tooling/issues/6)) ([525434c](https://github.com/FutureHax/futurehax-shared-tooling/commit/525434cc6158dc7cde5cf4f7da8377f90c514646)), closes [#5](https://github.com/FutureHax/futurehax-shared-tooling/issues/5)
+
 ## What's New in v1.2.2
 
 - Fixed an issue where the optional OpenAI secret was not being passed into the semantic-release process.
