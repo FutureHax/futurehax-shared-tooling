@@ -1,0 +1,52 @@
+---
+description: Baseline conventions for FutureHax Next.js web apps without a bundled data layer or deploy path (Chakra UI)
+alwaysApply: true
+---
+
+# FutureHax Next.js App Conventions (base)
+
+This project is a FutureHax Next.js web app scaffolded from
+`nextjs-webapp-template`. It ships the UI stack and shared tooling only: no
+database, ORM, or deploy target is assumed. Hold to the canonical stack and
+structure. Drift is audited by `futurehax-next-doctor`.
+
+When the app picks a data layer and deploy path, move this link to the matching
+variant instead of adding that stack here:
+
+- Firebase App Hosting + Firestore: `rules/next-app-firebase/next-app-spec.mdc`.
+- Prisma + PostgreSQL on Helm/Flux (the alpha-5 profile): `rules/next-app/next-app-spec.mdc`.
+
+## Stack (do not substitute)
+
+- **Framework**: Next.js (App Router) under `src/app/`. No `pages/` router.
+- **Language**: TypeScript, `strict` mode. Keep a `type-check` script (`tsc --noEmit`).
+- **UI**: Chakra UI v3 + Emotion (`@chakra-ui/react`, `@emotion/react`, `@emotion/styled`).
+  Do **not** introduce shadcn/ui or Tailwind. Theme lives in `src/theme.ts`;
+  the app is wrapped by `src/providers/ChakraProviders.tsx`.
+- **Landing**: Compose public home IA from `@futurehax/nextjs-common-ui/landing`
+  (Hero → Features → Demo → How it works → pricing → FAQ → Final CTA). Keep
+  product media and pricing wrappers app-owned.
+- **CSS**: Never add an unlayered global `padding: 0` reset that matches non-`<button>`
+  elements. It beats Chakra `@layer recipes` and strips `LinkButton` / `asChild`
+  link padding. Prefer no padding reset, or wrap it in `@layer reset { ... }`.
+- **Validation**: `zod`.
+
+## Tooling
+
+- ESLint via the shared preset (`.shared-tooling/eslint/next-app.mjs`) extending
+  `next/core-web-vitals`, `next/typescript`, and `prettier`.
+- Prettier: `printWidth: 120`, `singleQuote: true`, `trailingComma: "es5"`.
+- Husky + commitlint (conventional commits) + lint-staged.
+- Tests with Vitest; keep `test` and `test:run` scripts.
+
+## Delivery
+
+- Release via `semantic-release` on `main` (changelog, tag, GitHub release).
+- CI runs lint, type-check, build, and tests.
+
+## Security & infra
+
+- Commit `package-lock.json`. Never commit `.env*` or credential files; keep
+  `.env*` in `.gitignore` and document vars in `.env.example`.
+- Private `@futurehax/*` packages install with `NODE_AUTH_TOKEN` (`read:packages`).
+- Do not add Dependabot. Define reviewers in `.github/CODEOWNERS`.

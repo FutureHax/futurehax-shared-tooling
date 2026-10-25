@@ -1,13 +1,19 @@
 ---
-description: Baseline conventions for FutureHax Next.js web apps (Chakra UI + Prisma + Helm/Flux)
+description: alpha-5 / Prisma + Helm profile for FutureHax Next.js apps (Chakra UI + Prisma + Helm/Flux on GKE). Not the default for every Next app.
 alwaysApply: true
 ---
 
-# FutureHax Next.js App Conventions
+# FutureHax Next.js App Conventions (alpha-5 / Prisma + Helm profile)
 
-This project is a FutureHax Next.js web app scaffolded from
-`nextjs-webapp-template`. Hold to the canonical stack and structure. Drift is
-audited by `futurehax-next-doctor`.
+This rule is only for FutureHax Next.js apps that keep a Prisma + PostgreSQL
+data layer and deploy through Helm/Flux on GKE. Today that is `alpha-5-bot`.
+It is not the default for new or existing Next apps:
+
+- Firebase App Hosting apps link `rules/next-app-firebase/next-app-spec.mdc`.
+- Apps with neither Prisma nor Helm/Flux link `rules/next-app-base/next-app-spec.mdc`.
+
+Hold to the stack and structure below. Drift is audited by
+`futurehax-next-doctor` (profile `gke`).
 
 ## Stack (do not substitute)
 
