@@ -62,7 +62,11 @@ Provides:
 - `eslint/next-app.mjs` — `createNextConfig()` (wraps `eslint-config-next` + Prettier)
 - `releaserc/next-app.js` — `createReleaseConfig({ chartPath })` (optional Helm versioning)
 - `taskfile/next-app.yml` — dev/build/lint/type-check/test/db/release tasks
-- `rules/next-app/next-app-spec.mdc` — baseline Cursor rule
+- `rules/next-app/next-app-spec.mdc` — baseline Cursor rule (GKE apps)
+- `rules/next-app-firebase/next-app-spec.mdc` — baseline Cursor rule for
+  Firebase App Hosting apps scaffolded from
+  [`nextjs-firebase-webapp-template`](https://github.com/FutureHax/nextjs-firebase-webapp-template)
+  (Chakra UI + Firestore + App Hosting)
 - `skills/next-app/writing-nextjs-app-spec/` — baseline agent skill
 
 Consumer examples:
@@ -84,12 +88,18 @@ module.exports = createReleaseConfig({ chartPath: "chart/my-app" });
 export { default } from "./.shared-tooling/commitlint/base.ts";
 ```
 
-Copy the baseline rule and skill into the app's `.cursor/`:
+Symlink the baseline rule and skill into the app's `.cursor/`, picking the rule
+variant for the deploy profile. `futurehax-next-doctor` checks the link matches
+the profile and `next-doctor apply` creates it. Run from the repo root:
 
 ```bash
 mkdir -p .cursor/rules .cursor/skills
-cp .shared-tooling/rules/next-app/next-app-spec.mdc .cursor/rules/
-cp -r .shared-tooling/skills/next-app/writing-nextjs-app-spec .cursor/skills/
+# GKE apps
+ln -s ../../.shared-tooling/rules/next-app/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
+# Firebase App Hosting apps
+ln -s ../../.shared-tooling/rules/next-app-firebase/next-app-spec.mdc .cursor/rules/next-app-spec.mdc
+# Both
+ln -s ../../.shared-tooling/skills/next-app/writing-nextjs-app-spec .cursor/skills/writing-nextjs-app-spec
 ```
 
 ## Consumer Config Examples

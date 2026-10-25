@@ -1,0 +1,59 @@
+---
+description: Baseline conventions for FutureHax Next.js web apps on Firebase (Chakra UI + Firestore + App Hosting)
+alwaysApply: true
+---
+
+# FutureHax Next.js App Conventions (Firebase App Hosting)
+
+This project is a FutureHax Next.js web app scaffolded from
+`nextjs-firebase-webapp-template`. Hold to the canonical stack and structure.
+Drift is audited by `futurehax-next-doctor` (profile `firebase`).
+
+## Stack (do not substitute)
+
+- **Framework**: Next.js (App Router) under `src/app/`. No `pages/` router.
+- **Language**: TypeScript, `strict` mode. Keep a `type-check` script (`tsc --noEmit`).
+- **UI**: Chakra UI v3 + Emotion (`@chakra-ui/react`, `@emotion/react`, `@emotion/styled`).
+  Do **not** introduce shadcn/ui or Tailwind. Theme lives in `src/theme.ts`;
+  the app is wrapped by `src/providers/ChakraProviders.tsx`.
+- **Landing**: Compose public home IA from `@futurehax/nextjs-common-ui/landing`
+  (Hero → Features → Demo → How it works → pricing → FAQ → Final CTA). Keep
+  product media and pricing wrappers app-owned.
+- **CSS**: Never add an unlayered global `padding: 0` reset that matches non-`<button>`
+  elements. It beats Chakra `@layer recipes` and strips `LinkButton` / `asChild`
+  link padding. Prefer no padding reset, or wrap it in `@layer reset { ... }`.
+- **Data**: Cloud Firestore through `firebase-admin` on the server. Keep
+  collection access in `src/lib/firestore/`; browser code calls authenticated
+  API routes. Do not add a separate SQL database or ORM.
+- **Auth**: Firebase Authentication. Verify ID tokens or session cookies on the
+  server before touching Firestore.
+- **Validation**: `zod`.
+
+## Tooling
+
+- ESLint via the shared preset (`.shared-tooling/eslint/next-app.mjs`) extending
+  `next/core-web-vitals`, `next/typescript`, and `prettier`.
+- Prettier: `printWidth: 120`, `singleQuote: true`, `trailingComma: "es5"`.
+- Husky + commitlint (conventional commits) + lint-staged.
+- Tests with Vitest; keep `test` and `test:run` scripts.
+- Local development can run against the Firebase emulators.
+
+## Delivery
+
+- Firebase App Hosting builds and rolls out the app. Keep `apphosting.yaml`
+  (runtime config, secrets, env) and `firebase.json` at the repo root.
+- `firestore.rules` deny direct client access to application collections
+  unless a collection is deliberately public.
+- Release via `semantic-release` on `main` (changelog, tag, GitHub release).
+- CI runs lint, type-check, and build; add the test run once the app has tests.
+
+## Security & infra
+
+- Commit `package-lock.json`. Never commit `.env*`, service-account keys, or
+  downloaded credential files; keep `.env*` in `.gitignore` and document vars
+  in `.env.example`.
+- App Hosting uses Application Default Credentials for server access. Store
+  secrets in Cloud Secret Manager and reference them from `apphosting.yaml`.
+- Private `@futurehax/*` packages need `NODE_AUTH_TOKEN` in `apphosting.yaml`
+  with `availability: [BUILD]`.
+- Do not add Dependabot. Define reviewers in `.github/CODEOWNERS`.
