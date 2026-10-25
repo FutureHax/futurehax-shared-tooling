@@ -1,3 +1,16 @@
+## What's New in v1.4.0
+
+- Added a new rules feature, specifically for the alpha-5 Prisma+Helm profile, including a base variant for improved gameplay options.
+
+---
+
+# [1.4.0](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.3.0...v1.4.0) (2026-10-25)
+
+
+### Features
+
+* **rules:** scope next-app rule to the alpha-5 Prisma+Helm profile, add base variant ([#8](https://github.com/FutureHax/futurehax-shared-tooling/issues/8)) ([033a6f3](https://github.com/FutureHax/futurehax-shared-tooling/commit/033a6f3f7e0753b5a341da1f4bdde58e680c3b10))
+
 ## What's New in v1.3.0
 
 Internal improvements and stability fixes.
