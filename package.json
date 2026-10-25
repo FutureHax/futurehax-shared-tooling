@@ -41,5 +41,8 @@
   "devDependencies": {
     "husky": ">=9"
   },
+  "overrides": {
+    "handlebars": "4.7.10"
+  },
   "prettier": "./prettier/base.json"
 }
