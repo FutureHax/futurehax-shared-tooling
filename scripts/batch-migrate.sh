@@ -12,18 +12,13 @@ MIGRATE="$SCRIPT_DIR/migrate-project.sh"
 declare -A PROJECTS=(
   # pb-* modules (minimal lint-staged tier)
   ["pb-combat-helper-overlay"]="foundry-module"
-  ["pb-derelict-staging"]="foundry-module"
   ["pb-encounter-atlas-alpha"]="foundry-module"
   ["pb-job-board"]="foundry-module"
   ["pb-naval-combat-overlay"]="foundry-module"
-  ["pb-pirate-forge"]="foundry-module"
-  ["pb-potion-bench"]="foundry-module"
-  ["pb-sea-travel"]="foundry-module"
   ["pb-shanty-engine"]="foundry-module"
   ["pb-storm-generator"]="foundry-module"
   ["pb-suite-manager"]="foundry-module"
   ["pb-tavern-plus"]="foundry-module"
-  ["pb-treasure-staging"]="foundry-module"
   ["pb-wind-manager"]="foundry-module"
 
   # Template-derived modules (extended globals)
