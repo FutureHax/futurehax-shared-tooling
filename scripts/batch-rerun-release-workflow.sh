@@ -20,17 +20,12 @@ done
 
 PROJECTS=(
   pb-combat-helper-overlay
-  pb-derelict-staging
   pb-job-board
   pb-naval-combat-overlay
-  pb-pirate-forge
-  pb-potion-bench
-  pb-sea-travel
   pb-shanty-engine
   pb-storm-generator
   pb-suite-manager
   pb-tavern-plus
-  pb-treasure-staging
   pb-wind-manager
   foundry-mob-actor
   foundry-character-vault-module
