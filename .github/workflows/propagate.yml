@@ -31,10 +31,14 @@ jobs:
             death-effect-reminder-pirateborg
             death-ledger
             digi-dm-screen
+            easy-experience-5e
+            easy-loot
             farsight-importer-ext
             fh-actually-private-rolls
             foundry-adventure-module-template
             foundry-character-vault-module
+            foundry-hiscores
+            foundry-hiscores-pirateborg
             foundry-mcp
             foundry-mob-actor
             futurehax-cms
@@ -46,10 +50,12 @@ jobs:
             jolly-rogenerator
             jolly-rogenerator-classes-module
             jr-foundry-bridge
+            kill-ledger
             monster-card-generator
             nextjs-webapp-template
             night-of-the-drac-o-lantern-module
             obsidian-homebrewery-renderer
+            oh-you-dead
             patreon-mcp
             pb-combat-helper-overlay
             pb-dice-themes
@@ -68,6 +74,7 @@ jobs:
             scattered-seafloor-module
             selective-sight
             soft-lights
+            token-layers
             zordon
           )
 
