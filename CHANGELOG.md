@@ -1,3 +1,16 @@
+## What's New in v1.4.1
+
+- Fixed an issue that caused the release to fail when the Foundry listing update encountered an error.
+
+---
+
+## [1.4.1](https://github.com/FutureHax/futurehax-shared-tooling/compare/v1.4.0...v1.4.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **release:** fail the release when the Foundry listing update fails ([#10](https://github.com/FutureHax/futurehax-shared-tooling/issues/10)) ([b7b66ce](https://github.com/FutureHax/futurehax-shared-tooling/commit/b7b66ce522963e5bd233a79561435664b5e5ed56))
+
 ## What's New in v1.4.0
 
 - Added a new rules feature, specifically for the alpha-5 Prisma+Helm profile, including a base variant for improved gameplay options.
